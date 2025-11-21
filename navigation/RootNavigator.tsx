@@ -53,7 +53,7 @@ export const RootNavigator = () => {
 
   return (
     // style={nativeWindVars} 将变量注入到根节点，所有子组件的 Tailwind 类都能读取到
-    <View style={[nativeWindVars, { flex: 1 }]}>
+    <View style={[nativeWindVars, { flex: 1 }]} className="bg-gray-200 dark:bg-black">
       <ThemeProvider value={navTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

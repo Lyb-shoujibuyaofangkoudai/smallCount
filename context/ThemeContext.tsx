@@ -1,5 +1,6 @@
 import { themes } from '@/theme/themes';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useColorScheme } from 'nativewind';
 
 import { ThemeName } from '@/theme/colors';
 import { themeStorageManager } from '../utils/storage';
@@ -15,13 +16,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeName, setThemeName] = useState<ThemeName>('default');
+  const { setColorScheme } = useColorScheme();
 
   // 从存储中加载主题设置
   useEffect(() => {
     const loadTheme = async () => {
       try {
         const savedTheme = await themeStorageManager.getString('SELECTED_THEME_NAME');
-        if (savedTheme && ['default', 'blue', 'purple', 'orange'].includes(savedTheme)) {
+        if (savedTheme && ['default', 'default_dark', 'blue', 'blue_dark', 'purple', 'purple_dark', 'orange', 'orange_dark'].includes(savedTheme)) {
           setThemeName(savedTheme as ThemeName);
         }
       } catch (error) {
@@ -38,6 +40,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const isDarkMode = useMemo(() => {
     return theme.dark || false;
   }, [theme]);
+
+  // 使用 NativeWind 的 setColorScheme 来管理暗色模式
+  useEffect(() => {
+    if (isDarkMode) {
+      setColorScheme('dark');
+    } else {
+      setColorScheme('light');
+    }
+  }, [isDarkMode, setColorScheme]);
 
   const setTheme = async (name: ThemeName) => {
     try {

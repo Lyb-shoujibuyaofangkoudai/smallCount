@@ -69,57 +69,64 @@ function ThemeSelector() {
   const { themeName, setTheme, isDarkMode } = useTheme();
   const themeOptions = useMemo(
     () => [
-      { key: "default" as const, label: "绿色", color: "#10b981" },
-      { key: "blue" as const, label: "蓝色", color: "#3b82f6" },
-      { key: "purple" as const, label: "紫色", color: "#8b5cf6" },
-      { key: "orange" as const, label: "橙色", color: "#f59e0b" },
+      { key: "default" as const, label: "绿色", color: "#10b981", darkColor: "#10b981" },
+      { key: "default_dark" as const, label: "绿色暗色", color: "#10b981", darkColor: "#10b981" },
+      { key: "blue" as const, label: "蓝色", color: "#3b82f6", darkColor: "#3b82f6" },
+      { key: "blue_dark" as const, label: "蓝色暗色", color: "#3b82f6", darkColor: "#3b82f6" },
+      { key: "purple" as const, label: "紫色", color: "#8b5cf6", darkColor: "#8b5cf6" },
+      { key: "purple_dark" as const, label: "紫色暗色", color: "#8b5cf6", darkColor: "#8b5cf6" },
+      { key: "orange" as const, label: "橙色", color: "#f59e0b", darkColor: "#f59e0b" },
+      { key: "orange_dark" as const, label: "橙色暗色", color: "#f59e0b", darkColor: "#f59e0b" },
     ],
     []
   );
   
   return (
-    <View className="flex-row gap-2">
-      {themeOptions.map((opt) => {
-        const active = themeName === opt.key;
-        return (
-          <Pressable
-            key={opt.key}
-            className={`px-3 py-2 rounded-xl border transition-colors ${
-              active
-                ? "border-primary bg-primary/10"
-                : "border-border"
-            }`}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setTheme(opt.key);
-            }}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-          >
-            <View className="flex-row items-center gap-2">
+    <View className="space-y-4">
+      <View className="flex-row flex-wrap gap-2">
+        {themeOptions.map((opt) => {
+          const active = themeName === opt.key;
+          const isDarkTheme = opt.key.includes('_dark');
+          
+          return (
+            <Pressable
+              key={opt.key}
+              className={`px-3 py-2 rounded-xl border transition-colors flex-row items-center gap-2 ${
+                active
+                  ? "border-primary bg-primary/10"
+                  : "border-border"
+              } ${isDarkTheme ? "bg-neutral-100 dark:bg-neutral-800" : ""}`}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setTheme(opt.key);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${opt.label}主题`}
+            >
               <View 
-                className="w-4 h-4 rounded-full" 
+                className="w-4 h-4 rounded-full border border-white dark:border-neutral-800" 
                 style={{ backgroundColor: opt.color }}
               />
-              <Text
-                className={`text-sm ${active ? "text-primary" : "text-text"}`}
-              >
+              <Text className="text-xs text-text">
                 {opt.label}
               </Text>
-            </View>
-          </Pressable>
-        );
-      })}
-      <View className="flex-1 items-end">
-        <View className="flex-row items-center gap-2">
-          <Text className="text-xs text-text/60">
-            当前
+              {isDarkTheme && (
+                <MaterialIcons name="dark-mode" size={12} color="#6b7280" />
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+      
+      <View className="flex-row items-center justify-between">
+        <Text className="text-xs text-text/60">
+          当前主题
+        </Text>
+        <View className="px-2 py-1 rounded-lg bg-card border border-border">
+          <Text className="text-xs text-text font-medium">
+            {themeOptions.find(opt => opt.key === themeName)?.label || themeName}
           </Text>
-          <View className="px-2 py-1 rounded-lg bg-card">
-            <Text className="text-xs text-text">
-              {themeName}
-            </Text>
-          </View>
         </View>
       </View>
     </View>
@@ -131,7 +138,7 @@ export default function ProfilePage() {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950">
+    <SafeAreaView className="flex-1">
       <ScrollView
         className="flex-1 px-4 md:px-8 py-4 md:py-8"
         showsVerticalScrollIndicator={false}

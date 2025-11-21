@@ -18,7 +18,7 @@ export default function StatsPage() {
     setActiveTab(tab);
   };
   return (
-    <SafeAreaView>
+    <SafeAreaView className="flex-1">
       <DashboardHeader
               selectedDate={new Date()}
               onDatePress={showDatepicker}

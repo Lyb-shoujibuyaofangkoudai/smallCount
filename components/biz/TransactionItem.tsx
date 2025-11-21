@@ -37,7 +37,7 @@ export default function TransactionItem({
           </View>
         </View>
       </View>
-      <Text className={`text-base font-semibold ${type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
+      <Text className={`text-xl font-bold ${type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
         {type === 'income' ? '+' : '-'}¥{Math.abs(amount).toFixed(2)}
       </Text>
     </View>

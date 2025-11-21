@@ -76,9 +76,9 @@ export default function DashboardHeader({
       </View>
 
       {/* Tab切换栏 */}
-      <View className="py-4 bg-transparent">
+      <View className="px-2 bg-transparent">
         <View 
-          className="flex-row items-center justify-between bg-gray-100 dark:bg-gray-800 rounded-lg p-1 relative"
+          className="flex-row items-center justify-between bg-gray-200 dark:bg-charcoal-800 rounded-lg py-3 px-1 relative"
           onLayout={(event) => {
             const { width } = event.nativeEvent.layout;
             setContainerWidth(width);
@@ -87,14 +87,14 @@ export default function DashboardHeader({
           {/* 滑块背景 - 根据平台使用不同的动画方案 */}
           {Platform.OS === 'web' ? (
             <View 
-              className={`absolute top-1 bottom-1 w-1/2 rounded-md bg-white dark:bg-gray-700 shadow-sm transition-all duration-300 ease-in-out ${
+              className={`absolute top-1 bottom-1 w-1/2 rounded-md bg-white dark:bg-charcoal-900 shadow-sm transition-all duration-300 ease-in-out ${
                 activeTab === 'details' ? 'left-1' : 'left-[calc(50%-4px)]'
               }`}
             />
           ) : (
             <Animated.View 
               style={sliderStyle}
-              className="absolute top-1 bottom-1 w-1/2 rounded-md bg-white dark:bg-gray-700 shadow-sm"
+              className="absolute top-1 bottom-1 w-1/2 rounded-md bg-white dark:bg-charcoal-900 shadow-sm"
             />
           )}
           <TouchableOpacity
