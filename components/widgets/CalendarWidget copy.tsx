@@ -1,188 +1,203 @@
-import { colors } from '@/theme/colors';
-import React, { useState, useEffect } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from "@/context/ThemeContext";
+import { colors } from "@/theme/colors";
+import React, { useEffect, useState } from "react";
+import {
+  StyleProp,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { useThemeConfig } from '@/hooks/use-theme-config';
-import { StyleProp, ViewStyle } from 'react-native';
-import { DateData, MarkedDates, Theme } from 'react-native-calendars/src/types';
+import { DateData, MarkedDates, Theme } from "react-native-calendars/src/types";
 
-LocaleConfig.locales['zh'] = {
+LocaleConfig.locales["zh"] = {
   monthNames: [
-    '01',
-    '02',
-    '03',
-    '04',
-    '05',
-    '06',
-    '07',
-    '08',
-    '09',
-    '10',
-    '11',
-    '12'
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
   ],
-  monthNamesShort: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
-  dayNames: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
-  dayNamesShort: ['日', '一', '二', '三', '四', '五', '六'],
-  today: "今天"
+  monthNamesShort: [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+  ],
+  dayNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+  dayNamesShort: ["日", "一", "二", "三", "四", "五", "六"],
+  today: "今天",
 };
 
-LocaleConfig.defaultLocale = 'zh';
+LocaleConfig.defaultLocale = "zh";
 
 // 自定义日期组件
-const CustomDay = ({ date, state, marking, onPress, onLongPress, theme, transactionsData }: any) => {
-  const themeConfig = useThemeConfig();
-  const [isSelected, setIsSelected] = useState(state === 'selected');
-  
-  // 监听 state 变化，同步选择状态
-  useEffect(() => {
-    setIsSelected(state === 'selected');
-  }, [state]);
-  
+const CustomDay = ({
+  date,
+  state,
+  onPress,
+  onLongPress,
+  theme,
+  transactionsData,
+  isDark,
+}: any) => {
+  // 直接使用 state 参数，不维护内部状态，避免状态不同步
+  const isSelected = state === "selected";
+
   // 获取某日的支出和收入数据
   const getDayTransactions = (dateString: string) => {
     // 从传入的交易数据中获取指定日期的收支信息
     const dayData = transactionsData?.[dateString];
-    
+
     if (dayData) {
       return {
         expense: dayData.expense || 0,
-        income: dayData.income || 0
+        income: dayData.income || 0,
       };
     }
-    
+
     // 如果没有数据，返回0
     return { expense: 0, income: 0 };
   };
 
-  const { expense, income } = getDayTransactions(date?.dateString || '');
-  
+  const { expense, income } = getDayTransactions(date?.dateString || "");
+
   // 格式化金额显示
   const formatAmount = (amount: number, isExpense: boolean) => {
-    if (amount === 0) return '0';
-    const prefix = isExpense ? '-' : '+';
-    return `${prefix}${amount.toFixed(2)}`;
+    
   };
 
   // 判断背景色逻辑 - 支持亮暗主题和选择状态
   const getBackgroundColor = () => {
     // 选中状态优先级最高
-    if (isSelected || state === 'selected') {
-      return theme?.selectedDayBackgroundColor || colors.primary[600];
+    if (isSelected || state === "selected") {
+      return theme?.selectedDayBackgroundColor || colors.primary[500];
     }
-    
+
     // 今日状态次之
-    if (state === 'today') {
-      return themeConfig.dark ? colors.primary[900] : colors.charcoal[200]; // 深色模式用深色，浅色模式用浅色
+    if (state === "today") {
+      return isDark ? colors.primary[900] : colors.charcoal[200]; // 深色模式用深色，浅色模式用浅色
     }
-    
+
     // 本月日期
-    if (state === 'normal' || !state) {
-      return themeConfig.dark ? colors.charcoal[800] : colors.neutral[200]; // 深色模式用深灰，浅色模式用浅灰
+    if (state === "normal" || !state) {
+      return isDark ? colors.charcoal[800] : colors.neutral[200]; // 深色模式用深灰，浅色模式用浅灰
     }
-    
+
     // 非本月日期（disabled状态或其他）
-    return themeConfig.dark ? colors.charcoal[900] : colors.neutral[50]; // 深色模式用更深色，浅色模式用更浅色
+    return isDark ? colors.charcoal[900] : colors.neutral[50]; // 深色模式用更深色，浅色模式用更浅色
   };
 
   // 判断文字颜色 - 支持亮暗主题和选择状态
   const getTextColor = () => {
     // 选中状态文字颜色
-    if (isSelected || state === 'selected') {
+    if (isSelected || state === "selected") {
       return theme?.selectedDayTextColor || colors.white;
     }
-    
+
     // 今日状态文字颜色
-    if (state === 'today') {
-      return themeConfig.dark ? colors.primary[200] : colors.primary[700]; // 深色模式用浅色，浅色模式用深色
+    if (state === "today") {
+      return isDark ? colors.primary[200] : colors.primary[700]; // 深色模式用浅色，浅色模式用深色
     }
-    
+
     // 禁用状态文字颜色
-    if (state === 'disabled') {
-      return themeConfig.dark ? colors.neutral[500] : colors.neutral[400]; // 深色模式用更深的灰色
+    if (state === "disabled") {
+      return isDark ? colors.neutral[500] : colors.neutral[400]; // 深色模式用更深的灰色
     }
-    
+
     // 正常状态文字颜色
-    return themeConfig.dark ? colors.neutral[200] : colors.charcoal[700]; // 深色模式用浅色，浅色模式用深色
+    return isDark ? colors.neutral[200] : colors.charcoal[700]; // 深色模式用浅色，浅色模式用深色
   };
-
-  // 判断边框颜色 - 支持亮暗主题和选择状态
-  const getBorderColor = () => {
-    // 选中状态优先级最高
-    if (isSelected || state === 'selected') {
-      return colors.primary[600]; // 选中状态用主题色边框
-    }
-    
-    // 今日状态次之
-    if (state === 'today') {
-      return themeConfig.dark ? colors.primary[700] : colors.primary[300]; // 深色模式用深色边框
-    }
-    
-    return 'transparent';
-  };
-
 
   return (
     <TouchableOpacity
+      className="relative flex-col items-center py-1"
       style={{
-        width: 46,
-        height: 60,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
+        width: 40,
         backgroundColor: getBackgroundColor(),
-        borderRadius: 10,
-        borderWidth: (state === 'today' || isSelected) ? 1 : 0,
-        borderColor: getBorderColor(),
-        opacity: state === 'disabled' ? 0.5 : 1,
+        borderRadius: 5,
+        opacity: state === "disabled" ? 0.5 : 1,
+        borderColor: isSelected ? colors.success[600] : "transparent",
       }}
       onPress={() => {
         // 触发选择事件
         onPress?.(date);
-        // 更新内部选择状态（用于视觉反馈）
-        setIsSelected(!isSelected);
       }}
       onLongPress={() => onLongPress?.(date)}
-      disabled={state === 'disabled'}
+      disabled={state === "disabled"}
     >
+      {isSelected && (
+        <View
+          className="absolute top-0 left-0 w-2 h-2 rounded-full"
+          style={{ backgroundColor: colors.success[600] }}
+        />
+      )}
       {/* 日期数字 */}
       <Text
         style={{
           color: getTextColor(),
           fontSize: 18,
-          fontWeight: (state === 'today' || isSelected) ? 'bold' : 'normal',
-          marginBottom: 4,
+          fontWeight: state === "today" || isSelected ? "bold" : "normal",
         }}
       >
         {date?.day}
       </Text>
-      
+
       {/* 收入和支出显示 - 上下结构 */}
-      <View style={{ alignItems: 'center' }}>
+      <View style={{ alignItems: "center" }}>
         {/* 收入 */}
         <Text
           style={{
-            color: income > 0 
-              ? (themeConfig.dark ? colors.success[400] : colors.success[700]) // 深色模式用更亮的绿色
-              : (themeConfig.dark ? colors.neutral[500] : colors.neutral[400]),
-            fontSize: 10,
-            fontWeight: '500',
+            color: isSelected
+              ? colors.white // 选中状态统一使用白色
+              : income > 0
+              ? isDark
+                ? colors.success[400]
+                : colors.success[700] // 深色模式用更亮的绿色
+              : isDark
+              ? colors.neutral[500]
+              : colors.neutral[400],
+            fontSize: 8,
+            fontWeight: "500",
             marginBottom: 1,
           }}
         >
-          {income > 0 ? `+${income.toFixed(2)}` : '+0'}
+          {income > 0 ? `+${income.toFixed(2)}` : "+0"}
         </Text>
-        
+
         {/* 支出 */}
         <Text
           style={{
-            color: expense > 0 
-              ? (themeConfig.dark ? colors.danger[400] : colors.danger[700]) // 深色模式用更亮的红色
-              : (themeConfig.dark ? colors.neutral[500] : colors.neutral[400]),
-            fontSize: 10,
-            fontWeight: '500',
+            color: isSelected
+              ? colors.white // 选中状态统一使用白色
+              : expense > 0
+              ? isDark
+                ? colors.danger[400]
+                : colors.danger[700] // 深色模式用更亮的红色
+              : isDark
+              ? colors.neutral[500]
+              : colors.neutral[400],
+            fontSize: 8,
+            fontWeight: "500",
           }}
         >
-          {expense > 0 ? `-${expense.toFixed(2)}` : '-0'}
+          {expense > 0 ? `-${expense.toFixed(2)}` : "-0"}
         </Text>
       </View>
     </TouchableOpacity>
@@ -197,7 +212,11 @@ interface CalendarWidgetProps {
       income: number;
     };
   };
-  
+
+  // 多日期选择相关
+  selectedDates?: string[]; // 外部传入的选中日期
+  onSelectedDatesChange?: (dates: string[]) => void; // 选中日期变化时的回调
+
   // Calendar 核心属性
   current?: string;
   initialDate?: string;
@@ -211,27 +230,30 @@ interface CalendarWidgetProps {
   enableSwipeMonths?: boolean;
   disabledByDefault?: boolean;
   disabledByWeekDays?: number[];
-  
+
   // 样式相关
   style?: StyleProp<ViewStyle>;
   headerStyle?: StyleProp<ViewStyle>;
   theme?: Theme;
   customHeader?: any;
-  
+
   // 事件回调
   onDayPress?: (date: DateData) => void;
   onDayLongPress?: (date: DateData) => void;
   onMonthChange?: (date: DateData) => void;
   onVisibleMonthsChange?: (months: DateData[]) => void;
-  
+
   // 其他
   testID?: string;
 }
 
-export default function CalendarWidget({ 
+export default function CalendarWidget({
   transactionsData = {},
+  // 多日期选择相关
+  selectedDates: externalSelectedDates,
+  onSelectedDatesChange,
   // Calendar 默认属性
-  current = new Date().toISOString().split('T')[0], // 默认使用当前日期
+  current = new Date().toISOString().split("T")[0], // 默认使用当前日期
   initialDate,
   minDate,
   maxDate,
@@ -251,79 +273,182 @@ export default function CalendarWidget({
   onDayLongPress,
   onMonthChange,
   onVisibleMonthsChange,
-  testID
+  testID,
 }: CalendarWidgetProps) {
-    const themeConfig = useThemeConfig(); 
-    
-    // 创建一个包装组件来传递 transactionsData
-    const DayComponentWithProps = (props: any) => (
-      <CustomDay {...props} transactionsData={transactionsData} />
-    );
-    // 默认头部样式 - 支持亮暗主题
-    const defaultHeaderStyle: StyleProp<ViewStyle> = {
-      backgroundColor: themeConfig.dark ? colors.charcoal[950] : colors.white,
-      borderBottomWidth: 1,
-      borderBottomColor: themeConfig.dark ? colors.charcoal[800] : colors.neutral[200],
-      paddingBottom: 8,
+  const { isDarkMode } = useTheme();
+
+  // 内部管理选中状态 - 改为支持多日期选择，支持外部控制
+  const [internalSelectedDates, setInternalSelectedDates] = useState<
+    Set<string>
+  >(new Set(externalSelectedDates || []));
+
+  // 使用外部传入的选中日期或内部状态
+  const selectedDates = externalSelectedDates
+    ? new Set(externalSelectedDates)
+    : internalSelectedDates;
+
+  // 更新选中状态的统一方法
+  const updateSelectedDates = (newDates: Set<string>) => {
+    if (externalSelectedDates !== undefined) {
+      // 如果有外部控制，只触发回调
+      onSelectedDatesChange?.(Array.from(newDates));
+    } else {
+      // 否则更新内部状态
+      setInternalSelectedDates(newDates);
+    }
+  };
+
+  // 合并外部传入的 markedDates 和内部选中的日期
+  const getMarkedDates = () => {
+    const baseMarkedDates = markedDates || {};
+
+    // 如果有选中的日期，添加选中样式
+    if (selectedDates.size > 0) {
+      const markedDatesWithSelection = { ...baseMarkedDates };
+
+      // 为每个选中的日期添加选中样式
+      selectedDates.forEach((dateString) => {
+        markedDatesWithSelection[dateString] = {
+          selected: true,
+          selectedColor: colors.primary[600],
+          selectedTextColor: colors.white,
+          ...(baseMarkedDates[dateString] || {}),
+        };
+      });
+
+      return markedDatesWithSelection;
+    }
+
+    return baseMarkedDates;
+  };
+
+  // 事件处理方法
+  const handleDayPress = (date: DateData) => {
+    console.log("CalendarWidget: onDayPress triggered", date);
+
+    // 更新选中状态 - 支持多日期选择
+    const newSelectedDates = new Set(selectedDates);
+    if (newSelectedDates.has(date.dateString)) {
+      // 如果已选中，则取消选中
+      newSelectedDates.delete(date.dateString);
+    } else {
+      // 如果未选中，则添加选中
+      newSelectedDates.add(date.dateString);
+    }
+
+    // 使用统一的更新方法
+    updateSelectedDates(newSelectedDates);
+
+    // 触发外部回调
+    onDayPress?.(date);
+  };
+
+  const handleDayLongPress = (date: DateData) => {
+    console.log("CalendarWidget: onDayLongPress triggered", date);
+    onDayLongPress?.(date);
+  };
+
+  const handleMonthChange = (date: DateData) => {
+    console.log("CalendarWidget: onMonthChange triggered", date);
+    onMonthChange?.(date);
+  };
+
+  const handleVisibleMonthsChange = (months: DateData[]) => {
+    console.log("CalendarWidget: onVisibleMonthsChange triggered", months);
+    onVisibleMonthsChange?.(months);
+  };
+
+  // 创建一个包装组件来传递 transactionsData、主题配置和选中状态
+  const DayComponentWithProps = (props: any) => {
+    // 检查当前日期是否被选中 - 支持多日期选择
+    const isDateSelected = selectedDates.has(props.date?.dateString);
+
+    // 如果选中，修改 state 参数
+    const enhancedProps = {
+      ...props,
+      state: isDateSelected ? "selected" : props.state,
+      transactionsData,
+      isDarkMode, // 从主组件传递主题状态
     };
 
-    // 默认容器样式 - 支持亮暗主题
-    const defaultStyle: StyleProp<ViewStyle> = {
-      height: 550,
-      backgroundColor: themeConfig.dark ? colors.charcoal[950] : colors.white,
-      padding: 6,
-    };
+    return <CustomDay {...enhancedProps} />;
+  };
+  // 默认头部样式 - 支持亮暗主题
+  const defaultHeaderStyle: StyleProp<ViewStyle> = {
+    backgroundColor: isDarkMode ? colors.charcoal[950] : colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: isDarkMode
+      ? colors.charcoal[800]
+      : colors.neutral[200],
+    paddingBottom: 8,
+  };
 
-    // 合并默认主题和传入的主题 - 支持亮暗主题
-    const defaultTheme = {
-      backgroundColor: themeConfig.dark ? colors.charcoal[950] : colors.white,
-      calendarBackground: themeConfig.dark ? colors.charcoal[950] : colors.white,
-      textSectionTitleColor: themeConfig.dark ? colors.neutral[400] : colors.neutral[500],
-      selectedDayBackgroundColor: colors.primary[600],
-      selectedDayTextColor: colors.white,
-      todayTextColor: themeConfig.dark ? colors.primary[400] : colors.primary[600],
-      dayTextColor: themeConfig.dark ? colors.neutral[200] : colors.charcoal[700],
-      textDisabledColor: themeConfig.dark ? colors.neutral[600] : colors.neutral[400],
-      arrowColor: themeConfig.dark ? colors.neutral[300] : colors.charcoal[600],
-      monthTextColor: themeConfig.dark ? colors.neutral[100] : colors.charcoal[800],
-      textDayFontFamily: 'System',
-      textMonthFontFamily: 'System',
-      textDayHeaderFontFamily: 'System',
-    };
+  // 默认容器样式 - 支持亮暗主题
+  const defaultStyle: StyleProp<ViewStyle> = {
+    backgroundColor: isDarkMode ? colors.charcoal[950] : colors.white,
+  };
 
-    return (
-        <Calendar
-          // 基础属性
-          current={current}
-          initialDate={initialDate}
-          minDate={minDate}
-          maxDate={maxDate}
-          allowSelectionOutOfRange={allowSelectionOutOfRange}
-          markedDates={markedDates}
-          hideExtraDays={hideExtraDays}
-          showSixWeeks={showSixWeeks}
-          disableMonthChange={disableMonthChange}
-          enableSwipeMonths={enableSwipeMonths}
-          disabledByDefault={disabledByDefault}
-          disabledByWeekDays={disabledByWeekDays}
-          
-          // 样式属性
-          style={style ? [defaultStyle, style] : defaultStyle}
-          headerStyle={headerStyle ? [defaultHeaderStyle, headerStyle] : defaultHeaderStyle}
-          theme={theme ? { ...defaultTheme, ...theme } : defaultTheme}
-          customHeader={customHeader}
-          
-          // 自定义日期组件
-          dayComponent={DayComponentWithProps}
-          
-          // 事件回调
-          onDayPress={onDayPress}
-          onDayLongPress={onDayLongPress}
-          onMonthChange={onMonthChange}
-          onVisibleMonthsChange={onVisibleMonthsChange}
-          
-          // 其他
-          testID={testID}
-        />
-    );
-};
+  // 合并默认主题和传入的主题 - 支持亮暗主题
+  const defaultTheme = {
+    backgroundColor: isDarkMode ? colors.charcoal[950] : colors.white,
+    calendarBackground: isDarkMode ? colors.charcoal[950] : colors.white,
+    textSectionTitleColor: isDarkMode
+      ? colors.neutral[400]
+      : colors.neutral[500],
+    selectedDayBackgroundColor: colors.primary[600],
+    selectedDayTextColor: colors.white,
+    todayTextColor: isDarkMode
+      ? colors.primary[400]
+      : colors.primary[600],
+    dayTextColor: isDarkMode ? colors.neutral[200] : colors.charcoal[700],
+    textDisabledColor: isDarkMode
+      ? colors.neutral[600]
+      : colors.neutral[400],
+    arrowColor: isDarkMode ? colors.neutral[300] : colors.charcoal[600],
+    monthTextColor: isDarkMode
+      ? colors.neutral[100]
+      : colors.charcoal[800],
+    textDayFontFamily: "System",
+    textMonthFontFamily: "System",
+    textDayHeaderFontFamily: "System",
+  };
+
+  const [key, setKey] = useState(0);
+  useEffect(() => {
+    setKey(Date.now());
+  }, [isDarkMode]);
+
+  return (
+    <Calendar
+      // 修复切换主题后theme不生效问题，强制刷新，确保切换主题时会重新生效
+      key={key}
+      // 基础属性
+      current={current}
+      initialDate={initialDate}
+      minDate={minDate}
+      maxDate={maxDate}
+      allowSelectionOutOfRange={allowSelectionOutOfRange}
+      markedDates={getMarkedDates()}
+      hideExtraDays={hideExtraDays}
+      showSixWeeks={showSixWeeks}
+      disableMonthChange={disableMonthChange}
+      enableSwipeMonths={enableSwipeMonths}
+      disabledByDefault={disabledByDefault}
+      disabledByWeekDays={disabledByWeekDays}
+      // 样式属性
+      style={style ? [defaultStyle, style] : defaultStyle}
+      headerStyle={
+        headerStyle ? [defaultHeaderStyle, headerStyle] : defaultHeaderStyle
+      }
+      theme={theme ? { ...defaultTheme, ...theme } : defaultTheme}
+      customHeader={customHeader}
+      // 自定义日期组件
+      dayComponent={DayComponentWithProps}
+      // 事件回调
+      onDayPress={handleDayPress}
+      onDayLongPress={handleDayLongPress}
+      onMonthChange={handleMonthChange}
+      onVisibleMonthsChange={handleVisibleMonthsChange}
+    />
+  );
+}

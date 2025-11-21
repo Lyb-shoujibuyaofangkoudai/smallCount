@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useThemeConfig } from '@/hooks/use-theme-config';
+import { useTheme } from '@/context/ThemeContext';
 
 type NavKey = 'detail' | 'stats' | 'add' | 'ledgers' | 'profile';
 
@@ -22,7 +22,7 @@ export default function BottomNav() {
   const pathname = usePathname();
   const active = useActiveKey(pathname);
   const insets = useSafeAreaInsets();
-  const { theme } = useThemeConfig();
+  const { theme } = useTheme();
 
   const items = useMemo(
     () => [
@@ -46,7 +46,7 @@ export default function BottomNav() {
         key: 'add' as const,
         label: '',
         icon: (color: string) => (
-          <View className="w-12 h-12 rounded-full justify-center items-center" style={{ backgroundColor: theme.colors.primary }}>
+          <View className="w-12 h-12 rounded-full justify-center items-center bg-primary">
             <MaterialIcons name="add" size={29} color="#fff" />
           </View>
         ),
@@ -74,7 +74,7 @@ export default function BottomNav() {
 
   return (
     <View
-      className="flex-row items-center justify-between px-2 bg-white dark:bg-neutral-900 border-t border-gray-200 dark:border-neutral-800"
+      className="flex-row items-center justify-between px-2 bg-card border-t border-border"
       style={{
         height: 56 + insets.bottom,
         paddingBottom: insets.bottom,

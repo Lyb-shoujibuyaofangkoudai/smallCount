@@ -14,8 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import TransactionItem from "@/components/biz/TransactionItem";
 import Card from "@/components/ui/Card";
 import BalanceWidget from "@/components/widgets/BalanceWidget";
+import { useTheme } from "@/context/ThemeContext";
 import { useShadowStyle } from "@/hooks/use-shadow";
-import { useThemeConfig } from "@/hooks/use-theme-config";
 import { useState } from "react";
 
 // 模拟数据 - 按日期分组的数据结构
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  const theme = useThemeConfig();
+  const { theme } = useTheme();
   const shadowStyle = useShadowStyle(theme.dark, "large");
   const router = useRouter();
 
@@ -148,7 +148,7 @@ export default function HomeScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   
   // Tab切换状态
-  const [activeTab, setActiveTab] = useState<'calendar' | 'details'>('calendar');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'details'>('details');
 
   // 日期选择器变化处理
   const onDateChange = (event: any) => {

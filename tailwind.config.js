@@ -1,9 +1,3 @@
-// 导入多主题颜色配置
-import { tailwindThemeColors } from './theme/colors';
-
-// 默认主题名称
-const DEFAULT_THEME = 'default';
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./components/**/*.{js,ts,tsx}", "./app/**/*.{js,ts,tsx}"],
@@ -12,25 +6,25 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
-      // 使用默认主题的颜色配置
-      colors: tailwindThemeColors(DEFAULT_THEME),
+      colors: {
+        // 定义语义化的颜色名称，指向 CSS 变量
+        primary: 'var(--color-primary)',
+        background: 'var(--color-background)',
+        card: 'var(--color-card)',
+        text: 'var(--color-text)',
+        border: 'var(--color-border)',
+        notification: 'var(--color-notification)',
+        // 自定义颜色
+        secondary: 'var(--color-secondary)',
+        // 向后兼容的颜色别名
+        'bg-primary': 'var(--color-primary)',
+        'bg-secondary': 'var(--color-secondary)',
+        'text-primary': 'var(--color-text)',
+        'text-secondary': 'var(--color-secondary)',
+      },
     },
   },
   plugins: [],
-};
-
-// 导出主题切换功能，用于开发环境或构建时切换主题
-module.exports.switchTheme = (themeName) => {
-  return {
-    ...module.exports,
-    theme: {
-      ...module.exports.theme,
-      extend: {
-        ...module.exports.theme.extend,
-        colors: tailwindThemeColors(themeName),
-      },
-    },
-  };
 };
 
 // 导出所有可用主题名称

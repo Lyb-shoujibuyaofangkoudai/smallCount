@@ -1,4 +1,4 @@
-import { useColorScheme } from "nativewind";
+import { useTheme } from "@/context/ThemeContext";
 import { colors } from "@/theme/colors";
 import React, { useEffect, useState } from "react";
 import {
@@ -59,6 +59,9 @@ const CustomDay = ({
 }: any) => {
   // 直接使用 state 参数，不维护内部状态，避免状态不同步
   const isSelected = state === "selected";
+  
+  // 获取主题颜色
+  const { theme: currentTheme } = useTheme();
 
   // 获取某日的支出和收入数据
   const getDayTransactions = (dateString: string) => {
@@ -87,21 +90,21 @@ const CustomDay = ({
   const getBackgroundColor = () => {
     // 选中状态优先级最高
     if (isSelected || state === "selected") {
-      return theme?.selectedDayBackgroundColor || colors.primary[500];
+      return theme?.selectedDayBackgroundColor || currentTheme.colors.primary;
     }
 
     // 今日状态次之
     if (state === "today") {
-      return isDark ? colors.primary[900] : colors.charcoal[200]; // 深色模式用深色，浅色模式用浅色
+      return isDark ? currentTheme.colors.primary + "33" : currentTheme.colors.border; // 深色模式用半透明主题色，浅色模式用边框色
     }
 
     // 本月日期
     if (state === "normal" || !state) {
-      return isDark ? colors.charcoal[800] : colors.neutral[200]; // 深色模式用深灰，浅色模式用浅灰
+      return isDark ? currentTheme.colors.card + "33" : currentTheme.colors.background; // 深色模式用半透明卡片色，浅色模式用背景色
     }
 
     // 非本月日期（disabled状态或其他）
-    return isDark ? colors.charcoal[900] : colors.neutral[50]; // 深色模式用更深色，浅色模式用更浅色
+    return isDark ? currentTheme.colors.card : currentTheme.colors.background; // 深色模式用卡片色，浅色模式用背景色
   };
 
   // 判断文字颜色 - 支持亮暗主题和选择状态
@@ -113,16 +116,16 @@ const CustomDay = ({
 
     // 今日状态文字颜色
     if (state === "today") {
-      return isDark ? colors.primary[200] : colors.primary[700]; // 深色模式用浅色，浅色模式用深色
+      return isDark ? currentTheme.colors.primary : currentTheme.colors.primary; // 使用主题色
     }
 
     // 禁用状态文字颜色
     if (state === "disabled") {
-      return isDark ? colors.neutral[500] : colors.neutral[400]; // 深色模式用更深的灰色
+      return isDark ? currentTheme.colors.border : currentTheme.colors.border; // 使用边框色
     }
 
     // 正常状态文字颜色
-    return isDark ? colors.neutral[200] : colors.charcoal[700]; // 深色模式用浅色，浅色模式用深色
+    return isDark ? currentTheme.colors.text : currentTheme.colors.text; // 使用文字色
   };
 
   return (
@@ -167,12 +170,8 @@ const CustomDay = ({
             color: isSelected
               ? colors.white // 选中状态统一使用白色
               : income > 0
-              ? isDark
-                ? colors.success[400]
-                : colors.success[700] // 深色模式用更亮的绿色
-              : isDark
-              ? colors.neutral[500]
-              : colors.neutral[400],
+              ? currentTheme.colors.secondary // 使用主题的次要色
+              : currentTheme.colors.border, // 使用边框色
             fontSize: 8,
             fontWeight: "500",
             marginBottom: 1,
@@ -187,12 +186,8 @@ const CustomDay = ({
             color: isSelected
               ? colors.white // 选中状态统一使用白色
               : expense > 0
-              ? isDark
-                ? colors.danger[400]
-                : colors.danger[700] // 深色模式用更亮的红色
-              : isDark
-              ? colors.neutral[500]
-              : colors.neutral[400],
+              ? currentTheme.colors.notification // 使用主题的通知色
+              : currentTheme.colors.border, // 使用边框色
             fontSize: 8,
             fontWeight: "500",
           }}
@@ -275,8 +270,7 @@ export default function CalendarWidget({
   onVisibleMonthsChange,
   testID,
 }: CalendarWidgetProps) {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { isDarkMode, theme: currentTheme } = useTheme();
 
   // 内部管理选中状态 - 改为支持多日期选择，支持外部控制
   const [internalSelectedDates, setInternalSelectedDates] = useState<
@@ -369,46 +363,36 @@ export default function CalendarWidget({
       ...props,
       state: isDateSelected ? "selected" : props.state,
       transactionsData,
-      isDark, // 从主组件传递主题状态
+      isDarkMode, // 从主组件传递主题状态
     };
 
     return <CustomDay {...enhancedProps} />;
   };
   // 默认头部样式 - 支持亮暗主题
   const defaultHeaderStyle: StyleProp<ViewStyle> = {
-    backgroundColor: isDark ? colors.charcoal[950] : colors.white,
+    backgroundColor: currentTheme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: isDark
-      ? colors.charcoal[800]
-      : colors.neutral[200],
+    borderBottomColor: currentTheme.colors.border,
     paddingBottom: 8,
   };
 
   // 默认容器样式 - 支持亮暗主题
   const defaultStyle: StyleProp<ViewStyle> = {
-    backgroundColor: isDark ? colors.charcoal[950] : colors.white,
+    backgroundColor: currentTheme.colors.card,
   };
 
   // 合并默认主题和传入的主题 - 支持亮暗主题
   const defaultTheme = {
-    backgroundColor: isDark ? colors.charcoal[950] : colors.white,
-    calendarBackground: isDark ? colors.charcoal[950] : colors.white,
-    textSectionTitleColor: isDark
-      ? colors.neutral[400]
-      : colors.neutral[500],
-    selectedDayBackgroundColor: colors.primary[600],
+    backgroundColor: currentTheme.colors.card,
+    calendarBackground: currentTheme.colors.card,
+    textSectionTitleColor: currentTheme.colors.border,
+    selectedDayBackgroundColor: currentTheme.colors.primary,
     selectedDayTextColor: colors.white,
-    todayTextColor: isDark
-      ? colors.primary[400]
-      : colors.primary[600],
-    dayTextColor: isDark ? colors.neutral[200] : colors.charcoal[700],
-    textDisabledColor: isDark
-      ? colors.neutral[600]
-      : colors.neutral[400],
-    arrowColor: isDark ? colors.neutral[300] : colors.charcoal[600],
-    monthTextColor: isDark
-      ? colors.neutral[100]
-      : colors.charcoal[800],
+    todayTextColor: currentTheme.colors.primary,
+    dayTextColor: currentTheme.colors.text,
+    textDisabledColor: currentTheme.colors.border,
+    arrowColor: currentTheme.colors.text,
+    monthTextColor: currentTheme.colors.text,
     textDayFontFamily: "System",
     textMonthFontFamily: "System",
     textDayHeaderFontFamily: "System",
@@ -417,7 +401,7 @@ export default function CalendarWidget({
   const [key, setKey] = useState(0);
   useEffect(() => {
     setKey(Date.now());
-  }, [isDark]);
+  }, [isDarkMode]);
 
   return (
     <Calendar

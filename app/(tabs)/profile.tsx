@@ -1,4 +1,4 @@
-import { useThemeConfig, type ColorSchemeType } from "@/hooks/use-theme-config";
+import { useTheme } from "@/context/ThemeContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
 import React, { useMemo, useState } from "react";
@@ -66,26 +66,28 @@ function SettingItem({
 }
 
 function ThemeSelector() {
-  const { themeType, setTheme, isDarkMode } = useThemeConfig();
-  const options: { key: ColorSchemeType; label: string }[] = useMemo(
+  const { themeName, setTheme, isDarkMode } = useTheme();
+  const themeOptions = useMemo(
     () => [
-      { key: "light", label: "亮色" },
-      { key: "dark", label: "暗色" },
-      { key: "system", label: "跟随系统" },
+      { key: "default" as const, label: "绿色", color: "#10b981" },
+      { key: "blue" as const, label: "蓝色", color: "#3b82f6" },
+      { key: "purple" as const, label: "紫色", color: "#8b5cf6" },
+      { key: "orange" as const, label: "橙色", color: "#f59e0b" },
     ],
     []
   );
+  
   return (
     <View className="flex-row gap-2">
-      {options.map((opt) => {
-        const active = themeType === opt.key;
+      {themeOptions.map((opt) => {
+        const active = themeName === opt.key;
         return (
           <Pressable
             key={opt.key}
             className={`px-3 py-2 rounded-xl border transition-colors ${
               active
-                ? "border-primary-500 bg-primary-50 dark:bg-primary-500/10"
-                : "border-gray-200 dark:border-neutral-700"
+                ? "border-primary bg-primary/10"
+                : "border-border"
             }`}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -94,22 +96,28 @@ function ThemeSelector() {
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
           >
-            <Text
-              className={`text-sm ${active ? "text-primary-600 dark:text-primary-400" : "text-neutral-700 dark:text-neutral-300"}`}
-            >
-              {opt.label}
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <View 
+                className="w-4 h-4 rounded-full" 
+                style={{ backgroundColor: opt.color }}
+              />
+              <Text
+                className={`text-sm ${active ? "text-primary" : "text-text"}`}
+              >
+                {opt.label}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
       <View className="flex-1 items-end">
         <View className="flex-row items-center gap-2">
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400">
+          <Text className="text-xs text-text/60">
             当前
           </Text>
-          <View className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-neutral-800">
-            <Text className="text-xs text-neutral-700 dark:text-neutral-300">
-              {isDarkMode ? "暗色" : "亮色"}
+          <View className="px-2 py-1 rounded-lg bg-card">
+            <Text className="text-xs text-text">
+              {themeName}
             </Text>
           </View>
         </View>

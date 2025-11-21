@@ -1,5 +1,5 @@
 import { useShadowStyle } from '@/hooks/use-shadow';
-import { useThemeConfig } from '@/hooks/use-theme-config';
+import { useTheme } from '@/context/ThemeContext';
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
 
@@ -11,7 +11,7 @@ interface CardProps {
 }
 
 export default function Card({ className, children, style, shadowSize = 'medium' }: CardProps) {
-  const { isDarkMode } = useThemeConfig();
+  const { isDarkMode } = useTheme();
   const shadowStyles = useShadowStyle(isDarkMode, shadowSize);
 
   return (

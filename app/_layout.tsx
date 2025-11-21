@@ -1,22 +1,16 @@
-import { useThemeConfig } from "@/hooks/use-theme-config";
-import { ThemeProvider } from "@react-navigation/native";
+import { View } from 'react-native';
+import { ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import "./global.css";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { RootNavigator } from "@/navigation/RootNavigator";
 
 export default function RootLayout() {
-  const theme = useThemeConfig();
-
   return (
-    <ThemeProvider value={theme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="modal"
-          options={{ presentation: "modal", title: "Modal" }}
-        />
-      </Stack>
+    <ThemeProvider>
+      <RootNavigator />
       <StatusBar style="auto" />
     </ThemeProvider>
   );
