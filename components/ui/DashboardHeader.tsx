@@ -46,10 +46,10 @@ export default function DashboardHeader({
   }, [activeTab, containerWidth]);
 
   return (
-    <>
+    <View className="py-2">
       {/* 头部 */}
       <View
-        className="px-6 py-4 bg-transparent"
+        className="px-6 py-4"
       >
         <View className="flex-row justify-between items-center">
           {/* 日期选择器 */}
@@ -76,7 +76,7 @@ export default function DashboardHeader({
       </View>
 
       {/* Tab切换栏 */}
-      <View className="px-2 bg-transparent">
+      <View className="px-4">
         <View 
           className="flex-row items-center justify-between bg-gray-200 dark:bg-charcoal-800 rounded-lg py-3 px-1 relative"
           onLayout={(event) => {
@@ -126,6 +126,6 @@ export default function DashboardHeader({
           
         </View>
       </View>
-    </>
+    </View>
   );
 }

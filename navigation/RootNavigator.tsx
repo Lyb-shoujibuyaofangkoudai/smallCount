@@ -50,6 +50,8 @@ export const RootNavigator = () => {
     '--color-border': theme.colors.border,
     '--color-notification': theme.colors.notification,
     '--color-secondary': theme.colors.secondary,
+    '--color-success': theme.colors.success,
+    '--color-warning': theme.colors.warning,
   });
 
   const { isReady, error, stage } = useSystemInit();

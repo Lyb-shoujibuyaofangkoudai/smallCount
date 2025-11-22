@@ -1,5 +1,6 @@
 import DashboardHeader from "@/components/ui/DashboardHeader";
 import CalendarWidget from "@/components/widgets/CalendarWidget";
+import MonthSelect from "@/components/widgets/MonthSelect";
 import { useRouter } from "expo-router";
 import {
   ScrollView,
@@ -123,10 +124,10 @@ const DateSectionHeader = ({
 
   return (
     <View className="flex-row justify-between items-center bg-transparent px-4 py-2 mt-4 dark:border-gray-800">
-      <Text className="text-sm font-medium text-gray-400 dark:text-gray-500">
+      <Text className="text-sm font-medium text-gray-400 dark:text-gray-300">
         {title}
       </Text>
-      <Text className="text-sm font-medium text-gray-400 dark:text-gray-500">
+      <Text className="text-sm font-medium text-gray-400 dark:text-gray-300">
         {totalText}
       </Text>
     </View>
@@ -134,10 +135,7 @@ const DateSectionHeader = ({
 };
 
 const DetailList = () => {
-  const handleViewAllTransactions = () => {
-    // navigation.navigate(Routes.TRANSACTIONS as any);
-    // 暂时注释，因为还没有创建交易列表页面
-  };
+
 
   // 渲染每个交易项
   const renderTransactionItem = ({ item }: { item: any }) => (
@@ -193,20 +191,27 @@ export default function HomeScreen() {
 
   // 日期选择器状态
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showMonthSelect, setShowMonthSelect] = useState(false);
 
   // Tab切换状态
   const [activeTab, setActiveTab] = useState<"calendar" | "details">("details");
 
-  // 日期选择器变化处理
-  const onDateChange = (event: any) => {
-    setShowDatePicker(false);
-    setSelectedDate(new Date(event.nativeEvent.timestamp));
+  // 月份选择器确认回调
+  const handleMonthConfirm = (year: number, month: number) => {
+    const newDate = new Date(year, month - 1, 1); // 月份从0开始，所以需要减1
+    setSelectedDate(newDate);
+    setShowMonthSelect(false);
+    console.log("选择月份:", year, "年", month, "月");
   };
 
-  // 显示日期选择器
-  const showDatepicker = () => {
-    setShowDatePicker(true);
+  // 显示月份选择器
+  const showMonthSelectModal = () => {
+    setShowMonthSelect(true);
+  };
+
+  // 关闭月份选择器
+  const closeMonthSelectModal = () => {
+    setShowMonthSelect(false);
   };
 
   // Tab切换处理
@@ -215,19 +220,6 @@ export default function HomeScreen() {
     setActiveTab(tab);
   };
 
-  const handleAddTransaction = (type: "income" | "expense") => {
-    // navigation.navigate(Routes.ADD_TRANSACTION, { type });
-    // 暂时注释，因为还没有创建添加交易页面
-    console.log("添加交易:", type);
-  };
-
-  const handleNavigateToStats = () => {
-    router.push("/stats");
-  };
-
-  const handleNavigateToLedgers = () => {
-    router.push("/ledgers");
-  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -235,7 +227,7 @@ export default function HomeScreen() {
       {/* 头部组件 */}
       <DashboardHeader
         selectedDate={selectedDate}
-        onDatePress={showDatepicker}
+        onDatePress={showMonthSelectModal}
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
@@ -290,6 +282,15 @@ export default function HomeScreen() {
       ) : (
         <DetailList />
       )}
+
+      {/* 月份选择弹窗 */}
+      <MonthSelect
+        visible={showMonthSelect}
+        onClose={closeMonthSelectModal}
+        onConfirm={handleMonthConfirm}
+        initialYear={selectedDate.getFullYear()}
+        initialMonth={selectedDate.getMonth() + 1}
+      />
     </SafeAreaView>
   );
 }

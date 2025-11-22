@@ -15,6 +15,8 @@ export const themes = {
       border: colorThemes.default.neutral[200], // 浅灰边框
       notification: colorThemes.default.danger[500], // 红色通知
       secondary: colorThemes.default.primary[600], // 深绿色
+      success: colorThemes.default.success[500], // 绿色成功
+      warning: colorThemes.default.warning[500], // 红色错误
     },
   },
   // 默认主题 - 暗色
@@ -28,6 +30,8 @@ export const themes = {
       border: colorThemes.default_dark.charcoal[700], // 深灰边框
       notification: colorThemes.default_dark.danger[500], // 红色通知
       secondary: colorThemes.default_dark.primary[600], // 深绿色
+      success: colorThemes.default_dark.success[500], // 绿色成功
+      warning: colorThemes.default_dark.warning[500], // 红色错误
     },
   },
   // 蓝色主题 - 浅色
@@ -41,6 +45,8 @@ export const themes = {
       border: colorThemes.blue.neutral[200], // 浅灰边框
       notification: colorThemes.blue.danger[500], // 红色通知
       secondary: colorThemes.blue.primary[600], // 深蓝色
+      success: colorThemes.blue.success[500], // 绿色成功
+      warning: colorThemes.blue.warning[500], // 红色错误
     },
   },
   // 蓝色主题 - 暗色
@@ -54,6 +60,8 @@ export const themes = {
       border: colorThemes.blue_dark.charcoal[700], // 深灰边框
       notification: colorThemes.blue_dark.danger[500], // 红色通知
       secondary: colorThemes.blue_dark.primary[600], // 深蓝色
+      success: colorThemes.blue_dark.success[500], // 绿色成功
+      warning: colorThemes.blue_dark.warning[500], // 红色错误
     },
   },
   // 紫色主题 - 浅色
@@ -67,6 +75,8 @@ export const themes = {
       border: colorThemes.purple.neutral[200], // 浅灰边框
       notification: colorThemes.purple.danger[500], // 红色通知
       secondary: colorThemes.purple.primary[600], // 深紫色
+      success: colorThemes.purple.success[500], // 绿色成功
+      warning: colorThemes.purple.warning[500], // 红色错误
     },
   },
   // 紫色主题 - 暗色
@@ -80,6 +90,8 @@ export const themes = {
       border: colorThemes.purple_dark.charcoal[700], // 深灰边框
       notification: colorThemes.purple_dark.danger[500], // 红色通知
       secondary: colorThemes.purple_dark.primary[600], // 深紫色
+      success: colorThemes.purple_dark.success[500], // 绿色成功
+      warning: colorThemes.purple_dark.warning[500], // 红色错误
     },
   },
   // 橙色主题 - 浅色
@@ -93,6 +105,8 @@ export const themes = {
       border: colorThemes.orange.neutral[200], // 浅灰边框
       notification: colorThemes.orange.danger[500], // 红色通知
       secondary: colorThemes.orange.primary[600], // 深橙色
+      success: colorThemes.orange.success[500], // 绿色成功
+      warning: colorThemes.orange.warning[500], // 红色错误
     },
   },
   // 橙色主题 - 暗色
@@ -106,6 +120,8 @@ export const themes = {
       border: colorThemes.orange_dark.charcoal[700], // 深灰边框
       notification: colorThemes.orange_dark.danger[500], // 红色通知
       secondary: colorThemes.orange_dark.primary[600], // 深橙色
+      success: colorThemes.orange_dark.success[500], // 绿色成功
+      warning: colorThemes.orange_dark.warning[500], // 黄色警告
     },
   },
 } as const;

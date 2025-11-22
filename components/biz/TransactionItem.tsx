@@ -27,7 +27,7 @@ export default function TransactionItem({
   icon = "💰"
 }: TransactionItemProps) {
   return (
-    <View className="flex-row justify-between items-center py-3 px-4 bg-white rounded-xl mb-2 dark:bg-black">
+    <View className="flex-row justify-between items-center py-6 px-5 bg-white rounded-xl mb-2 bg-gray-200 dark:bg-charcoal-800">
       <View className="flex-1 flex-row items-center">
         <View className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3 dark:bg-gray-800">
           <Text className="text-lg">{icon}</Text>
@@ -36,8 +36,8 @@ export default function TransactionItem({
           <Text className="text-base font-medium text-gray-900 mb-1 dark:text-gray-100">{title}</Text>
           <View className="flex-row items-center flex-wrap gap-2">
             {paymentMethod && (
-              <View className="bg-gray-100 px-2 py-0.5 rounded-full dark:bg-gray-800">
-                <Text className="text-xs text-gray-400 dark:text-gray-500">{paymentMethod}</Text>
+              <View className="px-2 py-0.5 rounded-[4px] bg-secondary">
+                <Text className="text-xs text-white">{paymentMethod}</Text>
               </View>
             )}
             {tags.map(tag => (
@@ -46,7 +46,7 @@ export default function TransactionItem({
                 className="px-2 py-0.5 rounded-full" 
                 style={{ backgroundColor: tag.color || '#E5E7EB' }}
               >
-                <Text className="text-xs text-gray-700 dark:text-gray-300">{tag.name}</Text>
+                <Text className="text-xs text-white dark:text-gray-100">{tag.name}</Text>
               </View>
             ))}
           </View>
