@@ -43,9 +43,11 @@ export const useSystemInit = () => {
   }, [migrationSuccess, migrationError]); // 依赖项：当迁移状态改变时触发
 
   // 5. 返回统一的状态
+  const stage: 'MIGRATING' | 'SEEDING' | 'READY' = !migrationSuccess ? 'MIGRATING' : (isReady ? 'READY' : 'SEEDING');
+  
   return {
     isReady, // 只有当 迁移成功 AND 种子数据初始化成功 后才为 true
     error: migrationError || initError, // 返回任意一个阶段的错误
-    stage: !migrationSuccess ? 'MIGRATING' : (isReady ? 'READY' : 'SEEDING')
+    stage
   };
 };

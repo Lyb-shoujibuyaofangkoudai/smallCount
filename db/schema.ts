@@ -47,6 +47,7 @@ export const accounts = sqliteTable('accounts', {
 // 3. 交易记录表 (transactions)
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(), // 交易唯一标识符，UUID 主键
+  tagId: text('tag_id').references(() => tags.id).notNull(), // 关联的标签 ID
   type: text('type', { enum: ['expense', 'income', 'transfer'] }).notNull(), // 交易类型：支出/收入/转账
   amount: real('amount').notNull(), // 交易金额（正数）
   description: text('description').notNull(), // 交易描述（如：午餐、工资）
@@ -82,7 +83,6 @@ export const budgets = sqliteTable('budgets', {
 // 5. 标签表 (tags)
 export const tags = sqliteTable('tags', {
   id: text('id').primaryKey(), // 标签唯一标识符，UUID 主键
-  transactionId: text('transaction_id').references(() => transactions.id, { onDelete: 'cascade' }).notNull(), // 关联的交易 ID
   name: text('name').notNull(), // 标签名称
   color: text('color'), // 标签颜色（十六进制）
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 创建时间

@@ -96,10 +96,12 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     }>(dataQuery, countQuery, pagination);
 
     // 6. 处理返回格式 (如果你想把 { tx: ... } 这一层解构掉)
-    return {
+    const r = {
       ...result,
       items: result.items.map((item) => item.tx), // 在这里做 map 转换
-    };
+    }
+    // console.log("findByMonth 查询结果:", r);
+    return r;
   }
 
   // 获取用户某账户下所有交易记录
