@@ -1202,6 +1202,7 @@ export const RootNavigator = () => {
 
   return (
     // style={nativeWindVars} 将变量注入到根节点，所有子组件的 Tailwind 类都能读取到
+    // 注意 taiwindcss这块的变量样式不要放在第三方组件中，否则可能会导致样式失效
     <View style={[nativeWindVars, { flex: 1 }]} className="bg-gray-200 dark:bg-black">
       <ThemeProvider value={navTheme}>
         <Stack>

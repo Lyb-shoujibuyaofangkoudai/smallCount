@@ -2,10 +2,10 @@ import { sql } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 // 辅助函数：生成 UUID (SQLite 默认没有 uuid() 函数，需在应用层生成或使用 polyfill)
-// 这里我们假设在插入时由应用层传入 ID，或者使用 text 默认值 (如果使用了 native 扩展)
-// 为了通用性，我们在 Repository 层处理 ID 生成。
+// 这里假设在插入时由应用层传入 ID，或者使用 text 默认值 (如果使用了 native 扩展)
+// 为了通用性，在 Repository 层处理 ID 生成。
 
-// 1. 用户表 (users)
+// 用户表 (users)
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(), // 用户唯一标识符，UUID 主键
   username: text('username').notNull().unique(), // 用户名，唯一且不能为空
@@ -21,7 +21,7 @@ export const users = sqliteTable('users', {
   lastLoginAt: integer('last_login_at', { mode: 'timestamp' }), // 最后登录时间
 });
 
-// 2. 账户表 (accounts)
+// 账户表 (accounts)
 export const accounts = sqliteTable('accounts', {
   id: text('id').primaryKey(), // 账户唯一标识符，UUID 主键
   userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(), // 关联的用户 ID
@@ -44,18 +44,17 @@ export const accounts = sqliteTable('accounts', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 最后更新时间
 });
 
-// 3. 交易记录表 (transactions)
+// 交易记录表 (transactions)
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(), // 交易唯一标识符，UUID 主键
   tagId: text('tag_id').references(() => tags.id).notNull(), // 关联的标签 ID
+  accountId: text('account_id').references(() => accounts.id).notNull(), // 关联的账户 ID
   type: text('type', { enum: ['expense', 'income', 'transfer'] }).notNull(), // 交易类型：支出/收入/转账
   amount: real('amount').notNull(), // 交易金额（正数）
   description: text('description').notNull(), // 交易描述（如：午餐、工资）
-  accountId: text('account_id').references(() => accounts.id).notNull(), // 关联的账户 ID
   transferAccountId: text('transfer_account_id').references(() => accounts.id), // 转账目标账户 ID（仅转账）
   transactionDate: integer('transaction_date', { mode: 'timestamp' }).notNull(), // 交易日期（Unix 时间戳）
-  transactionTime: text('transaction_time'), // 交易时间（HH:mm:ss）
-  paymentMethod: text('payment_method', { enum: ['cash', 'credit_card', 'debit_card', 'digital_wallet', 'bank_transfer', 'other', 'wechat_pay', 'alipay'] }).notNull(), // 支付方式
+  paymentMethodId: text('payment_method_id').references(() => paymentMethods.id).notNull(), // 关联的支付方式 ID
   location: text('location'), // 交易地点
   notes: text('notes'), // 备注
   receiptImageUrl: text('receipt_image_url'), // 收据图片 URL
@@ -66,7 +65,7 @@ export const transactions = sqliteTable('transactions', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 最后更新时间
 });
 
-// 4. 预算表 (budgets)
+// 预算表 (budgets)
 export const budgets = sqliteTable('budgets', {
   id: text('id').primaryKey(), // 预算唯一标识符，UUID 主键
   accountId: text('account_id').references(() => accounts.id, { onDelete: 'cascade' }).notNull(), // 关联的账户 ID（预算按账户维度）
@@ -80,12 +79,23 @@ export const budgets = sqliteTable('budgets', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 最后更新时间
 });
 
-// 5. 标签表 (tags)
+// 分类标签表 (tags)
 export const tags = sqliteTable('tags', {
   id: text('id').primaryKey(), // 标签唯一标识符，UUID 主键
   name: text('name').notNull(), // 标签名称
   color: text('color'), // 标签颜色（十六进制）
+  icon: text('icon'), // 图标（emoji 或代码）
+  type: text('type', { enum: ['expense', 'income'] }).notNull(), // 标签类型：支出/收入
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 创建时间
+});
+
+// 支付方式表 (payment_methods)
+export const paymentMethods = sqliteTable('payment_methods', {
+  id: text('id').primaryKey(), // 支付方式唯一标识符，UUID 主键
+  name: text('name').notNull(), // 支付方式名称
+  icon: text('icon'), // 图标（emoji 或代码）
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 创建时间
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`), // 最后更新时间
 });
 
 

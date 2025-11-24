@@ -1,13 +1,13 @@
 import { themes } from '@/theme/themes';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme } from 'nativewind';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import { ThemeName } from '@/theme/colors';
+import { ThemeName, baseColors } from '@/theme/colors';
 import { themeStorageManager } from '../utils/storage';
 
 type ThemeContextType = {
   themeName: ThemeName;
-  theme: typeof themes[ThemeName]; // 当前主题对象
+  theme: typeof themes[ThemeName] & { baseColors: typeof baseColors }; // 当前主题对象
   setTheme: (name: ThemeName) => void;
   isDarkMode: boolean;
 };
@@ -16,12 +16,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeName, setThemeName] = useState<ThemeName>('default');
+  const [bColors, setBaseColors] = useState<typeof baseColors>(baseColors);
+
   const { setColorScheme } = useColorScheme();
 
   // 从存储中加载主题设置
   useEffect(() => {
     const loadTheme = async () => {
       try {
+        if (bColors) {
+          setBaseColors(bColors);
+        }
         const savedTheme = await themeStorageManager.getString('SELECTED_THEME_NAME');
         if (savedTheme && ['default', 'default_dark', 'blue', 'blue_dark', 'purple', 'purple_dark', 'orange', 'orange_dark'].includes(savedTheme)) {
           setThemeName(savedTheme as ThemeName);
@@ -34,7 +39,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadTheme();
   }, []);
 
-  const theme = useMemo(() => themes[themeName], [themeName]);
+  const theme = useMemo(() => ({ ...themes[themeName], baseColors: bColors }), [themeName, bColors]);
   
   // 判断是否为深色模式（基于主题的 dark 属性）
   const isDarkMode = useMemo(() => {

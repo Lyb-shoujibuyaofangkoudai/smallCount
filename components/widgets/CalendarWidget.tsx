@@ -171,7 +171,7 @@ const CustomDay = ({
               ? colors.white // 选中状态统一使用白色
               : income > 0
               ? currentTheme.colors.secondary // 使用主题的次要色
-              : currentTheme.colors.border, // 使用边框色
+              : currentTheme.colors.textSecondary, // 使用边框色
             fontSize: 8,
             fontWeight: "500",
             marginBottom: 1,
@@ -187,7 +187,7 @@ const CustomDay = ({
               ? colors.white // 选中状态统一使用白色
               : expense > 0
               ? currentTheme.colors.notification // 使用主题的通知色
-              : currentTheme.colors.border, // 使用边框色
+              : currentTheme.colors.textSecondary, // 使用边框色
             fontSize: 8,
             fontWeight: "500",
           }}

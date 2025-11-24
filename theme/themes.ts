@@ -12,6 +12,7 @@ export const themes = {
       background: colorThemes.default.neutral[100], // 浅灰背景
       card: colorThemes.default.white, // 白色卡片
       text: colorThemes.default.neutral[800], // 深灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.default.neutral[200], // 浅灰边框
       notification: colorThemes.default.danger[500], // 红色通知
       secondary: colorThemes.default.primary[600], // 深绿色
@@ -27,6 +28,7 @@ export const themes = {
       background: colorThemes.default_dark.charcoal[950], // 深色背景
       card: colorThemes.default_dark.charcoal[800], // 深灰卡片（使用新的 #1B1B1C）
       text: colorThemes.default_dark.neutral[50], // 浅灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.default_dark.charcoal[700], // 深灰边框
       notification: colorThemes.default_dark.danger[500], // 红色通知
       secondary: colorThemes.default_dark.primary[600], // 深绿色
@@ -42,6 +44,7 @@ export const themes = {
       background: colorThemes.blue.neutral[100], // 浅灰背景
       card: colorThemes.blue.white, // 白色卡片
       text: colorThemes.blue.neutral[800], // 深灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.blue.neutral[200], // 浅灰边框
       notification: colorThemes.blue.danger[500], // 红色通知
       secondary: colorThemes.blue.primary[600], // 深蓝色
@@ -57,6 +60,7 @@ export const themes = {
       background: colorThemes.blue_dark.charcoal[950], // 深色背景
       card: colorThemes.blue_dark.charcoal[800], // 深灰卡片（使用新的 #1B1B1C）
       text: colorThemes.blue_dark.neutral[50], // 浅灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.blue_dark.charcoal[700], // 深灰边框
       notification: colorThemes.blue_dark.danger[500], // 红色通知
       secondary: colorThemes.blue_dark.primary[600], // 深蓝色
@@ -72,6 +76,7 @@ export const themes = {
       background: colorThemes.purple.neutral[100], // 浅灰背景
       card: colorThemes.purple.white, // 白色卡片
       text: colorThemes.purple.neutral[800], // 深灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.purple.neutral[200], // 浅灰边框
       notification: colorThemes.purple.danger[500], // 红色通知
       secondary: colorThemes.purple.primary[600], // 深紫色
@@ -87,6 +92,7 @@ export const themes = {
       background: colorThemes.purple_dark.charcoal[950], // 深色背景
       card: colorThemes.purple_dark.charcoal[800], // 深灰卡片（使用新的 #1B1B1C）
       text: colorThemes.purple_dark.neutral[50], // 浅灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.purple_dark.charcoal[700], // 深灰边框
       notification: colorThemes.purple_dark.danger[500], // 红色通知
       secondary: colorThemes.purple_dark.primary[600], // 深紫色
@@ -102,6 +108,7 @@ export const themes = {
       background: colorThemes.orange.neutral[100], // 浅灰背景
       card: colorThemes.orange.white, // 白色卡片
       text: colorThemes.orange.neutral[800], // 深灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.orange.neutral[200], // 浅灰边框
       notification: colorThemes.orange.danger[500], // 红色通知
       secondary: colorThemes.orange.primary[600], // 深橙色
@@ -117,6 +124,7 @@ export const themes = {
       background: colorThemes.orange_dark.charcoal[950], // 深色背景
       card: colorThemes.orange_dark.charcoal[800], // 深灰卡片（使用新的 #1B1B1C）
       text: colorThemes.orange_dark.neutral[50], // 浅灰文字
+      textSecondary: colorThemes.default.neutral[500], // 中灰文字
       border: colorThemes.orange_dark.charcoal[700], // 深灰边框
       notification: colorThemes.orange_dark.danger[500], // 红色通知
       secondary: colorThemes.orange_dark.primary[600], // 深橙色

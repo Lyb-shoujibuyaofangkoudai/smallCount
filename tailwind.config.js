@@ -13,6 +13,7 @@ module.exports = {
         background: "var(--color-background)",
         card: "var(--color-card)",
         text: "var(--color-text)",
+        textSecondary: "var(--color-text-secondary)",
         border: "var(--color-border)",
         notification: "var(--color-notification)",
         success: "var(--color-success)",
@@ -31,5 +32,3 @@ module.exports = {
   plugins: [],
 };
 
-// 导出所有可用主题名称
-module.exports.availableThemes = ["default", "blue", "purple", "orange"];
