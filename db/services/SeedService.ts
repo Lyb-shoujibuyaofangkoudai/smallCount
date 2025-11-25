@@ -1,179 +1,12 @@
+import { DEFAULT_ACCOUNT_NAME, DEFAULT_EMAIL, DEFAULT_TAGS, DEFAULT_USERNAME, PAYMENT_METHODS } from '@/constants/data';
 import { defaultStorageManager } from '@/utils/storage';
 import { AccountRepository } from '../repositories/AccountRepository';
-import { NewTag, TagRepository } from '../repositories/TagRepository';
 import { TransactionRepository } from '../repositories/TransactionRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { AccountService } from './AccountService';
+import { PaymentMethodService } from './PaymentMethodService';
+import { TagService } from './TagService';
 
-const DEFAULT_USERNAME = 'default_user';
-const DEFAULT_EMAIL = 'default@local';
-const DEFAULT_ACCOUNT_NAME = 'default';
-const DEFAULT_TAGS: {
-  expenses: Omit<NewTag, 'id' | 'createdAt'>[];
-  incomes: Omit<NewTag, 'id' | 'createdAt'>[];
-} = {
-  // ===========================
-  // 支出分类 (Expenses)
-  // ===========================
-  expenses: [
-    {
-      name: '餐饮美食',
-      icon: 'fast-food', 
-      color: '#ff7675', // 柔红
-      type: 'expense',
-    },
-    {
-      name: '交通出行',
-      icon: 'bus',
-      color: '#74b9ff', // 天蓝
-      type: 'expense',
-    },
-    {
-      name: '居家物业',
-      icon: 'home',
-      color: '#fdcb6e', // 暖黄
-      type: 'expense',
-    },
-    {
-      name: '日常购物',
-      icon: 'cart',
-      color: '#e17055', // 橘红
-      type: 'expense',
-    },
-    {
-      name: '服饰美容',
-      icon: 'shirt',
-      color: '#fd79a8', // 粉色
-      type: 'expense',
-    },
-    {
-      name: '娱乐消遣',
-      icon: 'game-controller',
-      color: '#a29bfe', // 淡紫
-      type: 'expense',  
-    },
-    {
-      name: '医疗健康',
-      icon: 'medkit',
-      color: '#00b894', // 绿色
-      type: 'expense',  
-    },
-    {
-      name: '教育学习',
-      icon: 'school',
-      color: '#55efc4', // 青绿
-      type: 'expense',  
-    },
-    {
-      name: '人情社交',
-      icon: 'gift',
-      color: '#d63031', // 深红
-      type: 'expense',  
-    },
-    {
-      name: '数码科技',
-      icon: 'phone-portrait',
-      color: '#636e72', // 灰色
-      type: 'expense',  
-    },
-    {
-      name: '孩子宝贝',
-      icon: 'balloon', // Ionicons没有婴儿图标，用气球代表孩子/玩乐
-      color: '#fab1a0', // 浅橘
-      type: 'expense',  
-    },
-    {
-      name: '宠物喵汪',
-      icon: 'paw',
-      color: '#e67e22', // 棕橘
-      type: 'expense',  
-    },
-    {
-      name: '旅行出游',
-      icon: 'airplane',
-      color: '#0984e3', // 深蓝
-      type: 'expense',  
-    },
-    {
-      name: '维修服务',
-      icon: 'construct',
-      color: '#2d3436', // 深灰
-      type: 'expense',  
-    },
-    {
-      name: '其他支出',
-      icon: 'apps',
-      color: '#b2bec3', // 浅灰
-      type: 'expense',  
-    }
-  ],
-
-  // ===========================
-  // 收入分类 (Income)
-  // ===========================
-  incomes: [
-    {
-      name: '工资薪水',
-      icon: 'wallet',
-      color: '#F7B731', // 金黄
-      type: 'income',  
-    },
-    {
-      name: '奖金补贴',
-      icon: 'trophy',
-      color: '#FA8231', // 橙色
-      type: 'income',  
-    },
-    {
-      name: '理财投资',
-      icon: 'trending-up',
-      color: '#20BF6B', // 鲜绿
-      type: 'income',  
-    },
-    {
-      name: '兼职外快',
-      icon: 'briefcase',
-      color: '#45AAF2', // 亮蓝
-      type: 'income',  
-    },
-    {
-      name: '人情红包',
-      icon: 'mail-open', // 类似拆开的信封/红包
-      color: '#EB3B5A', // 红色
-      type: 'income',  
-    },
-    {
-      name: '退款入账',
-      icon: 'arrow-undo',
-      color: '#A55EEA', // 紫色
-      type: 'income',   
-    },
-    {
-      name: '二手交易',
-      icon: 'repeat',
-      color: '#778ca3', // 蓝灰
-      type: 'income',   
-    },
-    {
-      name: '借入款项',
-      icon: 'cash',
-      color: '#4b6584', // 深蓝灰
-      type: 'income',   
-    },
-    {
-      name: '意外所得',
-      icon: 'sparkles', // 星星/闪光，代表好运
-      color: '#f1c40f', // 亮黄
-      type: 'income',   
-    },
-    {
-      name: '其他收入',
-      icon: 'grid',
-      color: '#95afc0', // 银色
-      type: 'income',   
-    }
-  ]
-};
 
 async function ensureDefaultUser() {
   const userRepo = new UserRepository();
@@ -194,7 +27,7 @@ async function ensureDefaultAccount(userId: string) {
   const accountRepo = new AccountRepository();
   const list = await accountRepo.findByUser(userId);
   if (list.length === 0) {
-    const acc = await AccountService.createNewAccount(userId, DEFAULT_ACCOUNT_NAME, 'cash', 0);
+    const acc = await AccountService.createNewAccount(userId, DEFAULT_ACCOUNT_NAME, 'cash', 0, '这是默认账户');
     await AccountService.setAsDefault(userId, acc.id);
     return { count: 1, defaultAccountId: acc.id, accountInfo: acc };
   }
@@ -244,13 +77,36 @@ const mockTransactionsDataToDb = async (account: {
 
 const addDefaultTagsDataToDb = async () => {
      // 创建一些标签数据 - 如果没有标签数据 模拟用户进行几笔标签
-    const tagRepo = new TagRepository();
-    const existingTags = await tagRepo.findAll();
-    console.log(`标签初始化完成: ${existingTags.length} 个标签`);
+    const existingTags = await TagService.getAllTags();
     if (existingTags.length === 0) {
-      const expenseTags = await tagRepo.createMany(DEFAULT_TAGS.expenses);
-      const incomeTags = await tagRepo.createMany(DEFAULT_TAGS.incomes);
-      console.log(`标签初始化完成: ${expenseTags.length + incomeTags.length} 个标签`);
+      try {
+        // 使用TagService的批量创建方法，这样可以复用业务逻辑校验
+        const expenseTags = await TagService.createTagsBatch(DEFAULT_TAGS.expenses);
+        const incomeTags = await TagService.createTagsBatch(DEFAULT_TAGS.incomes);
+        console.log(`标签初始化完成: ${expenseTags.length + incomeTags.length} 个标签`);
+      } catch (error) {
+        console.error('标签初始化失败:', error);
+        throw error;
+      }
+    } else {
+      console.log(`标签已存在: ${existingTags.length} 个标签`);
+    }
+};
+
+const addDefaultPaymentMethodsDataToDb = async () => {
+     // 创建一些支付方式数据 - 如果没有支付方式数据 模拟用户进行几笔支付方式
+    const existingPaymentMethods = await PaymentMethodService.getAllPaymentMethods();
+    if (existingPaymentMethods.length === 0) {
+      try {
+        // 使用PaymentMethodService的批量创建方法，这样可以复用业务逻辑校验
+        const paymentMethods = await PaymentMethodService.createPaymentMethodsBatch(PAYMENT_METHODS);
+        console.log(`支付方式初始化完成: ${paymentMethods.length} 个支付方式`);
+      } catch (error) {
+        console.error('支付方式初始化失败:', error);
+        throw error;
+      }
+    } else {
+      console.log(`支付方式已存在: ${existingPaymentMethods.length} 个支付方式`);
     }
 };
  
@@ -268,7 +124,7 @@ export const SeedService = {
     
     // 1. 确保默认用户存在 - 检查数据库中是否已有用户，如无则创建
     const user = await ensureDefaultUser();
-    console.log(`用户初始化完成: ${user.displayName} (ID: ${user.id})`);
+    console.log(`用户初始化完成: ${JSON.stringify(user)} (ID: ${user.id})`);
     defaultStorageManager.set('user', user);
     
     // 2. 确保默认账户存在 - 检查该用户是否已有账本，如无则创建默认账本
@@ -282,6 +138,9 @@ export const SeedService = {
 
     // 4. 初始化标签数据 - 如果没有标签数据 则添加默认标签
     await addDefaultTagsDataToDb();
+
+    // 5. 初始化支付方式数据 - 如果没有支付方式数据 则添加默认支付方式
+    await addDefaultPaymentMethodsDataToDb();
    
    
     // 返回初始化结果

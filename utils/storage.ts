@@ -70,7 +70,6 @@ export class StorageManager {
     try {
       const storageKey = getStorageKey(this.storageType, key)
       const value = await AsyncStorage.getItem(storageKey)
-      
       if (value === null) {
         return defaultValue
       }

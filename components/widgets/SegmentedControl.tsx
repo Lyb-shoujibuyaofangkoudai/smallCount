@@ -2,17 +2,17 @@
 import { useTheme } from '@/context/ThemeContext';
 import React, { useEffect, useState } from 'react';
 import {
-    LayoutChangeEvent,
-    Platform,
-    Pressable,
-    Text,
-    View,
-    ViewStyle,
+  LayoutChangeEvent,
+  Platform,
+  Pressable,
+  Text,
+  View,
+  ViewStyle,
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 
 interface SegmentedControlProps<T = string> {
@@ -21,6 +21,7 @@ interface SegmentedControlProps<T = string> {
   onChange: (index: number) => void;
   renderItem?: (item: T, isActive: boolean, index: number) => React.ReactNode;
   containerStyle?: ViewStyle;
+  containerClassName?: string;
 }
 
 export const SegmentedControl = <T extends any>({
@@ -29,9 +30,9 @@ export const SegmentedControl = <T extends any>({
   onChange,
   renderItem,
   containerStyle,
+  containerClassName,
 }: SegmentedControlProps<T>) => {
     const { isDarkMode,theme } = useTheme();
-    console.log('theme', theme);
   const [containerWidth, setContainerWidth] = useState(0);
   const translateX = useSharedValue(0);
 
@@ -75,7 +76,7 @@ export const SegmentedControl = <T extends any>({
   return (
     <View
       // 关键修复 2: 容器强制 relative，确保 absolute 子元素相对于此容器定位
-      className="flex-row bg-gray-200 dark:bg-charcoal-800 h-10 rounded-xl w-full"
+      className={`flex-row bg-gray-200 dark:bg-charcoal-800 h-10 rounded-xl w-full ${containerClassName}`}
       style={[{ position: 'relative', padding: 2 }, containerStyle]}
       onLayout={handleLayout}
     >

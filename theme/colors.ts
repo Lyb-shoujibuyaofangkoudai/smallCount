@@ -552,6 +552,103 @@ export const getThemeColors = (themeName: ThemeName = 'default'): ColorPalette =
   return themes[themeName] || themes.default;
 };
 
+// 颜色透明方法
+/**
+ * 为颜色添加透明度并返回RGBA字符串
+ * @param color - 颜色值，支持格式：十六进制(#RRGGBB, #RGB, #RRGGBBAA, #RGBA)、RGB(rgb(r,g,b))、RGBA(rgba(r,g,b,a))
+ * @param alpha - 透明度值，范围0-1，0为完全透明，1为完全不透明
+ * @returns 返回RGBA格式的字符串，如"rgba(255, 255, 255, 0.5)"
+ */
+export const addAlphaToColor = (color: string, alpha: number): string => {
+  // 验证透明度值
+  if (alpha < 0 || alpha > 1) {
+    throw new Error('透明度值必须在0到1之间');
+  }
+
+  // 清理颜色字符串
+  const cleanColor = color.trim().toLowerCase();
+
+  // 处理RGBA格式
+  if (cleanColor.startsWith('rgba')) {
+    const rgbaMatch = cleanColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d*\.?\d+))?\)/);
+    if (rgbaMatch) {
+      const r = parseInt(rgbaMatch[1]);
+      const g = parseInt(rgbaMatch[2]);
+      const b = parseInt(rgbaMatch[3]);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+
+  // 处理RGB格式
+  if (cleanColor.startsWith('rgb')) {
+    const rgbMatch = cleanColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (rgbMatch) {
+      const r = parseInt(rgbMatch[1]);
+      const g = parseInt(rgbMatch[2]);
+      const b = parseInt(rgbMatch[3]);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+
+  // 处理十六进制格式
+  if (cleanColor.startsWith('#')) {
+    let hex = cleanColor.slice(1);
+    
+    // 处理3位或4位十六进制
+    if (hex.length === 3 || hex.length === 4) {
+      hex = hex.split('').map(char => char + char).join('');
+    }
+    
+    // 处理6位或8位十六进制
+    if (hex.length === 6 || hex.length === 8) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+
+  // 处理命名颜色（简单支持常见颜色）
+  const namedColors: Record<string, string> = {
+    'black': '#000000',
+    'white': '#ffffff',
+    'red': '#ff0000',
+    'green': '#00ff00',
+    'blue': '#0000ff',
+    'yellow': '#ffff00',
+    'cyan': '#00ffff',
+    'magenta': '#ff00ff',
+    'gray': '#808080',
+    'grey': '#808080',
+    'silver': '#c0c0c0',
+    'maroon': '#800000',
+    'olive': '#808000',
+    'lime': '#00ff00',
+    'aqua': '#00ffff',
+    'teal': '#008080',
+    'navy': '#000080',
+    'fuchsia': '#ff00ff',
+    'purple': '#800080',
+    'orange': '#ffa500',
+  };
+
+  if (namedColors[cleanColor]) {
+    return addAlphaToColor(namedColors[cleanColor], alpha);
+  }
+
+  throw new Error(`不支持的颜色格式: ${color}`);
+};
+
+/**
+ * 便捷方法：为颜色添加透明度并返回RGBA字符串（简化版）
+ * @param color - 颜色值
+ * @param alpha - 透明度值，范围0-1
+ * @returns 返回RGBA格式的字符串
+ */
+export const alpha = (color: string, alpha: number): string => {
+  return addAlphaToColor(color, alpha);
+};
+
 
 // 导出默认主题颜色作为向后兼容
 export const colors = defaultTheme;

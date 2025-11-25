@@ -1,7 +1,7 @@
 import DashboardHeader from "@/components/ui/DashboardHeader";
 import CalendarWidget from "@/components/widgets/CalendarWidget";
 import MonthSelect from "@/components/widgets/MonthSelect";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
   ScrollView,
   SectionList,
@@ -20,8 +20,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { TransactionService } from "@/db/services/TransactionService";
 import { useShadowStyle } from "@/hooks/use-shadow";
 import { defaultStorageManager } from "@/utils/storage";
-import { useEffect, useState } from "react";
-
+import { useCallback, useEffect, useState } from "react";
 
 // 日期分组头部组件
 const DateSectionHeader = ({
@@ -48,8 +47,13 @@ const DateSectionHeader = ({
   );
 };
 
-const DetailList = ({ transactionsByDate, loading }: { transactionsByDate: any[], loading: boolean }) => {
-
+const DetailList = ({
+  transactionsByDate,
+  loading,
+}: {
+  transactionsByDate: any[];
+  loading: boolean;
+}) => {
   // 渲染每个交易项
   const renderTransactionItem = ({ item }: { item: any }) => (
     <View className="mx-4">
@@ -57,17 +61,17 @@ const DetailList = ({ transactionsByDate, loading }: { transactionsByDate: any[]
         className="mb-2 rounded-lg overflow-hidden"
         actions={[
           {
-            label: '编辑',
-            onPress: () => console.log('编辑交易:', item.id),
-            className: 'bg-blue-500',
-            textClassName: 'text-white'
+            label: "编辑",
+            onPress: () => console.log("编辑交易:", item.id),
+            className: "bg-blue-500",
+            textClassName: "text-white",
           },
           {
-            label: '删除',
-            onPress: () => console.log('删除交易:', item.id),
-            className: 'bg-red-500',
-            textClassName: 'text-white'
-          }
+            label: "删除",
+            onPress: () => console.log("删除交易:", item.id),
+            className: "bg-red-500",
+            textClassName: "text-white",
+          },
         ]}
         threshold={80}
       >
@@ -148,11 +152,16 @@ export default function HomeScreen() {
   // 交易数据状态
   const [transactions, setTransactions] = useState<any[]>([]);
   const [transactionsByDate, setTransactionsByDate] = useState<any[]>([]);
-  const [transactionsDataForCalendar, setTransactionsDataForCalendar] = useState<Record<string, { expense: number; income: number }>>({});
-  const [monthlyStats, setMonthlyStats] = useState<{ balance: number; income: number; expense: number }>({
+  const [transactionsDataForCalendar, setTransactionsDataForCalendar] =
+    useState<Record<string, { expense: number; income: number }>>({});
+  const [monthlyStats, setMonthlyStats] = useState<{
+    balance: number;
+    income: number;
+    expense: number;
+  }>({
     balance: 0,
     income: 0,
-    expense: 0
+    expense: 0,
   });
   const [loading, setLoading] = useState(false);
 
@@ -161,8 +170,11 @@ export default function HomeScreen() {
     const newDate = new Date(year, month - 1, 1); // 月份从0开始，所以需要减1
     setSelectedDate(newDate);
     setShowMonthSelect(false);
-    
-    // 获取新月份的交易数据
+  };
+
+  const getData = () => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
     getTransactionByDate(year, month);
   };
 
@@ -171,10 +183,18 @@ export default function HomeScreen() {
     if (!db.isInitialized) {
       return;
     }
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth() + 1;
-    getTransactionByDate(year, month);
-  }, [selectedDate,db.isInitialized]);
+    getData();
+  }, [selectedDate, db.isInitialized]);
+
+  // 监听页面聚焦事件，当从modal返回时重新获取数据
+  useFocusEffect(
+    useCallback(() => {
+      if (!db.isInitialized) {
+        return;
+      }
+      getData();
+    }, [db.isInitialized])
+  );
 
   // 显示月份选择器
   const showMonthSelectModal = () => {
@@ -196,60 +216,68 @@ export default function HomeScreen() {
   const getTransactionByDate = async (year: number, month: number) => {
     try {
       setLoading(true);
-      const accountId = await defaultStorageManager.getString("defaultAccountId");
-      
+      const accountId =
+        await defaultStorageManager.getString("defaultAccountId");
+
       // 调用TransactionService获取月份交易数据
-      const result = await TransactionService.getTransactionsByMonth(accountId as string, year, month);
-      
-      
+      const result = await TransactionService.getTransactionsByMonth(
+        accountId as string,
+        year,
+        month
+      );
+
       if (result && result.items) {
         setTransactions(result.items);
         console.log("获取到的交易数据:", result.items[0]);
         // 计算月度统计数据
         let totalIncome = 0;
         let totalExpense = 0;
-        
+
         result.items.forEach((transaction: any) => {
-          if (transaction.type === 'expense') {
+          if (transaction.type === "expense") {
             totalExpense += transaction.amount;
-          } else if (transaction.type === 'income') {
+          } else if (transaction.type === "income") {
             totalIncome += transaction.amount;
           }
         });
-        
+
         const balance = totalIncome - totalExpense;
         setMonthlyStats({
           balance,
           income: totalIncome,
-          expense: totalExpense
+          expense: totalExpense,
         });
-        
+
         // 处理数据用于日历组件
-        const calendarData: Record<string, { expense: number; income: number }> = {};
-        
+        const calendarData: Record<
+          string,
+          { expense: number; income: number }
+        > = {};
+
         result.items.forEach((transaction: any) => {
-          const dateStr = new Date(transaction.transactionDate).toISOString().split('T')[0];
-          
+          const dateStr = new Date(transaction.transactionDate)
+            .toISOString()
+            .split("T")[0];
+
           if (!calendarData[dateStr]) {
             calendarData[dateStr] = { expense: 0, income: 0 };
           }
-          
-          if (transaction.type === 'expense') {
+
+          if (transaction.type === "expense") {
             calendarData[dateStr].expense += transaction.amount;
-          } else if (transaction.type === 'income') {
+          } else if (transaction.type === "income") {
             calendarData[dateStr].income += transaction.amount;
           }
         });
-        
+
         setTransactionsDataForCalendar(calendarData);
-        
+
         // 处理数据用于详情列表
         const groupedData = groupTransactionsByDate(result.items);
         setTransactionsByDate(groupedData);
       }
     } catch (error) {
       console.error("获取交易数据失败:", error);
-      
     } finally {
       setLoading(false);
     }
@@ -258,39 +286,42 @@ export default function HomeScreen() {
   // 按日期分组交易数据
   const groupTransactionsByDate = (transactions: any[]) => {
     const grouped: Record<string, any[]> = {};
-    
-    transactions.forEach(transaction => {
+
+    transactions.forEach((transaction) => {
       const date = new Date(transaction.transactionDate);
-      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-dd 格式
-      
+      const dateStr = date.toISOString().split("T")[0]; // YYYY-MM-dd 格式
+
       if (!grouped[dateStr]) {
         grouped[dateStr] = [];
       }
-      
+
       grouped[dateStr].push({
         ...transaction,
-        date: date.toISOString().split('T')[0],
-        icon: transaction.type === 'income' ? '💰' : '💳',
-        color: transaction.type === 'income' ? '#34C759' : '#FF3B30',
-        paymentMethod: transaction.paymentMethod || '现金',
-        tags: transaction.tags || []
+        date: date.toISOString().split("T")[0],
+        icon: transaction.type === "income" ? "💰" : "💳",
+        color: transaction.type === "income" ? "#34C759" : "#FF3B30",
+        paymentMethod: transaction.paymentMethod || "现金",
+        tags: transaction.tags || [],
       });
     });
     // 转换为SectionList需要的格式
     return Object.entries(grouped).map(([title, data]) => {
       const total = {
-        expense: data.filter((t: any) => t.type === 'expense').reduce((sum: number, t: any) => sum + t.amount, 0),
-        income: data.filter((t: any) => t.type === 'income').reduce((sum: number, t: any) => sum + t.amount, 0)
+        expense: data
+          .filter((t: any) => t.type === "expense")
+          .reduce((sum: number, t: any) => sum + t.amount, 0),
+        income: data
+          .filter((t: any) => t.type === "income")
+          .reduce((sum: number, t: any) => sum + t.amount, 0),
       };
-      
+
       return {
         title,
         total,
-        data
+        data,
       };
     });
   };
-
 
   return (
     <SafeAreaView className="flex-1">
@@ -309,22 +340,22 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* 余额组件 */}
-          <BalanceWidget 
-            balance={monthlyStats.balance} 
-            income={monthlyStats.income} 
+          <BalanceWidget
+            balance={monthlyStats.balance}
+            income={monthlyStats.income}
             expense={monthlyStats.expense}
             month={`${selectedDate.getMonth() + 1}月`}
           />
 
           {/* 日历组件 - 传入真实数据 */}
           <CalendarWidget
-            current={selectedDate.toISOString().split('T')[0]}
+            current={selectedDate.toISOString().split("T")[0]}
             transactionsData={transactionsDataForCalendar}
             onDayPress={(date) => {
-              console.log('选中日期:', date);
+              console.log("选中日期:", date);
             }}
             onMonthChange={(date) => {
-              console.log('月份变化:', date);
+              console.log("月份变化:", date);
               // 更新选中日期并重新获取数据
               setSelectedDate(new Date(date.timestamp));
             }}

@@ -3,8 +3,8 @@ import { and, eq } from 'drizzle-orm';
 import { accounts } from '../schema';
 import { BaseRepository } from './BaseRepository';
 
-type Account = InferSelectModel<typeof accounts>;
-type NewAccount = InferInsertModel<typeof accounts>;
+export type Account = InferSelectModel<typeof accounts>;
+export type NewAccount = InferInsertModel<typeof accounts>;
 
 export class AccountRepository extends BaseRepository<Account> {
   constructor() {

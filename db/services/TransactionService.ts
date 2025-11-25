@@ -1,6 +1,6 @@
 
-import { TransactionRepository } from '../repositories/TransactionRepository';
 import type { InferInsertModel } from 'drizzle-orm';
+import { TransactionRepository } from '../repositories/TransactionRepository';
 import { transactions } from '../schema';
 
 type NewTransaction = InferInsertModel<typeof transactions>;
@@ -169,7 +169,7 @@ export const TransactionService = {
       // 关键词搜索
       if (keyword) {
         const searchTerm = keyword.toLowerCase();
-        match = tx.description.toLowerCase().includes(searchTerm);
+        match = tx?.description?.toLowerCase()?.includes(searchTerm) || false;
       }
       
       // 日期范围过滤
@@ -183,5 +183,59 @@ export const TransactionService = {
       
       return match;
     });
+  },
+
+  /**
+   * 创建简化交易记录（用于UI界面快速提交）
+   * @param transactionData - 交易数据
+   * @returns 创建的交易对象
+   */
+  async createSimpleTransaction(transactionData: {
+    accountId: string;
+    type: 'expense' | 'income';
+    amount: number;
+    tagId: string;
+    description?: string;
+    transactionDate: Date;
+    paymentMethodId: string;
+    note?: string;
+    attachmentIds?: string;
+  }) {
+    // 基本参数校验
+    if (!transactionData.accountId) {
+      throw new Error('账户ID不能为空');
+    }
+    
+    if (!transactionData.tagId) {
+      throw new Error('分类ID不能为空');
+    }
+    
+    if (!transactionData.amount || transactionData.amount <= 0) {
+      throw new Error('交易金额必须大于0');
+    }
+    
+    // 生成交易描述（如果没有提供）
+    const description = transactionData.description || `${transactionData.type === 'income' ? '收入' : '支出'}交易`;
+    
+    // 设置默认日期为当前时间
+    const transactionDate = transactionData.transactionDate || new Date();
+    
+    // 构建完整的交易数据
+    const fullTransactionData: Omit<NewTransaction, 'id' | 'createdAt' | 'updatedAt'> = {
+      accountId: transactionData.accountId,
+      type: transactionData.type,
+      amount: transactionData.amount,
+      tagId: transactionData.tagId,
+      description: description,
+      transactionDate: transactionDate,
+      paymentMethodId: transactionData.paymentMethodId,
+      notes: transactionData.note || null,
+      transferAccountId: null, // 简化版本不支持转账
+      attachmentIds: null, // 简化版本不支持附件
+      isRecurring: false, // 简化版本不支持定期交易
+    };
+    
+    // 调用现有的创建方法
+    return await this.createTransaction(fullTransactionData);
   }
 };

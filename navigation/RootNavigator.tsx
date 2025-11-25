@@ -9,7 +9,6 @@ import { vars } from "nativewind"; // NativeWind 提供的变量注入工具
 import React from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
 export const RootNavigator = () => {
   const { theme } = useTheme();
 

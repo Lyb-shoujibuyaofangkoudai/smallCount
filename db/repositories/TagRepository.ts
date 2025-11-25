@@ -30,6 +30,13 @@ export class TagRepository extends BaseRepository<Tag> {
     });
   }
 
+  // 通过name获取标签 存在多个优先获取第一个
+  async findByName(name: string): Promise<Tag | undefined> {
+    return await this.db.query.tags.findFirst({
+      where: eq(tags.name, name)
+    });
+  }
+
   // 更新标签
   async update(id: string, data: Partial<Omit<NewTag, 'id' | 'transactionId' | 'createdAt'>>): Promise<Tag | undefined> {
     const [updated] = await this.db.update(tags)

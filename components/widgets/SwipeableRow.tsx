@@ -1,8 +1,6 @@
 import React, { useRef } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-// 1. 引入 Reanimated 版本的 Swipeable (高性能，兼容 Web)
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-// 2. 引入 Reanimated 钩子
 import Reanimated, { interpolate, SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 export interface SwipeAction {
