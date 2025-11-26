@@ -121,28 +121,79 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     });
   }
 
-  // 更新交易
+  // 更新交易（包含余额更新）
   async update(id: string, data: Partial<Omit<NewTransaction, 'id' | 'createdAt' | 'updatedAt'>>) {
-    const [updated] = await this.db
-      .update(transactions)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
-      .where(eq(transactions.id, id))
-      .returning();
-    
-    return updated;
+    return await this.db.transaction(async (tx) => {
+      // 1. 获取原始交易记录
+      const originalTx = await tx.query.transactions.findFirst({
+        where: eq(transactions.id, id),
+      });
+      
+      if (!originalTx) {
+        throw new Error(`交易记录不存在: ${id}`);
+      }
+      
+      // 2. 更新交易记录
+      const [updated] = await tx
+        .update(transactions)
+        .set({
+          ...data,
+          updatedAt: new Date(),
+        })
+        .where(eq(transactions.id, id))
+        .returning();
+      
+      // 3. 检查是否需要更新账户余额
+      const amountChanged = data.amount !== undefined && data.amount !== originalTx.amount;
+      const typeChanged = data.type !== undefined && data.type !== originalTx.type;
+      const accountChanged = data.accountId !== undefined && data.accountId !== originalTx.accountId;
+      
+      // 4. 处理账户余额更新
+      if (amountChanged || typeChanged || accountChanged) {
+        if (accountChanged) {
+          // 账户变更：需要处理两个账户的余额
+          // 先恢复原始账户的余额影响
+          await this._reverseTransactionImpact(tx, originalTx);
+          
+          // 再应用新账户的余额影响
+          await this._applyTransactionImpact(tx, updated);
+        } else {
+          // 同一账户内的变更
+          // 先恢复原始交易对余额的影响
+          await this._reverseTransactionImpact(tx, originalTx);
+          
+          // 再应用更新后交易对余额的影响
+          await this._applyTransactionImpact(tx, updated);
+        }
+      }
+      
+      return updated;
+    });
   }
 
-  // 删除交易
+  // 删除交易（包含余额更新）
   async delete(id: string) {
-    const [deleted] = await this.db
-      .delete(transactions)
-      .where(eq(transactions.id, id))
-      .returning();
-    
-    return deleted;
+    return await this.db.transaction(async (tx) => {
+      // 1. 获取交易记录
+      const transaction = await tx.query.transactions.findFirst({
+        where: eq(transactions.id, id),
+      });
+      
+      if (!transaction) {
+        throw new Error(`交易记录不存在: ${id}`);
+      }
+      
+      // 2. 恢复交易对账户余额的影响
+      await this._reverseTransactionImpact(tx, transaction);
+      
+      // 3. 删除交易记录
+      const [deleted] = await tx
+        .delete(transactions)
+        .where(eq(transactions.id, id))
+        .returning();
+      
+      return deleted;
+    });
   }
 
   // 根据ID查找交易
@@ -150,5 +201,60 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     return await this.db.query.transactions.findFirst({
       where: eq(transactions.id, id),
     });
+  }
+
+  // 私有方法：应用交易对账户余额的影响
+  private async _applyTransactionImpact(tx: any, transaction: Transaction): Promise<void> {
+    const account = await tx.query.accounts.findFirst({
+      where: eq(accounts.id, transaction.accountId),
+    });
+    
+    if (account) {
+      const currentBalance = new Big(account.balance || 0);
+      const transactionAmount = new Big(transaction.amount);
+      let newBalance: Big;
+      
+      if (transaction.type === 'expense') {
+        newBalance = currentBalance.minus(transactionAmount);
+      } else if (transaction.type === 'income') {
+        newBalance = currentBalance.plus(transactionAmount);
+      } else {
+        // 转账类型需要更复杂的处理，这里暂时不处理
+        return;
+      }
+      
+      await tx
+        .update(accounts)
+        .set({ balance: newBalance.toNumber() })
+        .where(eq(accounts.id, transaction.accountId));
+    }
+  }
+
+  // 私有方法：恢复交易对账户余额的影响
+  private async _reverseTransactionImpact(tx: any, transaction: Transaction): Promise<void> {
+    const account = await tx.query.accounts.findFirst({
+      where: eq(accounts.id, transaction.accountId),
+    });
+    
+    if (account) {
+      const currentBalance = new Big(account.balance || 0);
+      const transactionAmount = new Big(transaction.amount);
+      let newBalance: Big;
+      
+      // 反向操作：支出变收入，收入变支出
+      if (transaction.type === 'expense') {
+        newBalance = currentBalance.plus(transactionAmount);
+      } else if (transaction.type === 'income') {
+        newBalance = currentBalance.minus(transactionAmount);
+      } else {
+        // 转账类型需要更复杂的处理，这里暂时不处理
+        return;
+      }
+      
+      await tx
+        .update(accounts)
+        .set({ balance: newBalance.toNumber() })
+        .where(eq(accounts.id, transaction.accountId));
+    }
   }
 }

@@ -1,3 +1,4 @@
+import AccountCreateModalWidget from "@/components/widgets/AccountCreateModalWidget";
 import SwipeableRow, { SwipeAction } from "@/components/widgets/SwipeableRow";
 import { useTheme } from "@/context/ThemeContext";
 import useDataStore from "@/storage/store/useDataStore";
@@ -17,7 +18,11 @@ export default function AccountsScreen() {
   const {theme} = useTheme();
   const [totalBalance, setTotalBalance] = useState(0);
   const [debtBalance, setDebtBalance] = useState(0);
-  const acList = useDataStore((state) => state.accounts);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const {
+    accounts: acList,
+    addAccount
+  } = useDataStore();
 
   useEffect(() => {
     // 计算总余额 - 使用bigjs避免浮点数精度问题
@@ -56,6 +61,20 @@ export default function AccountsScreen() {
     console.log("Edit item:", id);
   };
 
+  // 处理添加账户
+  const handleAddAccount = () => {
+    setIsModalVisible(true);
+  };
+
+  // 处理保存账户
+  const handleSaveAccount = async (accountData: any) => {
+    try {
+      await addAccount(accountData);
+      setIsModalVisible(false);
+    } catch (error) {
+      console.error("Failed to add account:", error);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -154,7 +173,7 @@ export default function AccountsScreen() {
           <TouchableOpacity
             activeOpacity={0.6}
             className="mx-4 mt-1 p-5 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 items-center justify-center"
-            onPress={() => console.log("Add Account")}
+            onPress={handleAddAccount}
           >
             <Text className="text-primary font-bold text-base">
               + 添加新账户
@@ -162,6 +181,13 @@ export default function AccountsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* 新增账户弹窗 */}
+      <AccountCreateModalWidget
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSave={handleSaveAccount}
+      />
     </SafeAreaView>
   );
 }

@@ -1,8 +1,9 @@
 import DashboardHeader from "@/components/ui/DashboardHeader";
 import CalendarWidget from "@/components/widgets/CalendarWidget";
 import MonthSelect from "@/components/widgets/MonthSelect";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import {
+  Alert,
   ScrollView,
   SectionList,
   StatusBar,
@@ -51,6 +52,8 @@ const DetailList = ({
   transactionsByDate: any[];
   loading: boolean;
 }) => {
+  const { deleteTransaction } = useDataStore();
+
   // 渲染每个交易项
   const renderTransactionItem = ({ item }: { item: any }) => (
     <View className="mx-4">
@@ -59,13 +62,26 @@ const DetailList = ({
         actions={[
           {
             label: "编辑",
-            onPress: () => console.log("编辑交易:", item.id),
+            onPress: () => router.navigate(`/transaction/edit/${item.id}`),
             className: "bg-blue-500",
             textClassName: "text-white",
           },
           {
             label: "删除",
-            onPress: () => console.log("删除交易:", item.id),
+            onPress: () => {
+              Alert.alert(
+                "确认删除",
+                `确定删除交易记录${item.transactionDate.toLocaleDateString()}的${item.tag.name} 吗？`,
+                [
+                  { text: "取消", style: "cancel" },
+                  {
+                    text: "删除",
+                    style: "destructive",
+                    onPress: () => deleteTransaction(item.id),
+                  },
+                ]
+              );
+            },
             className: "bg-red-500",
             textClassName: "text-white",
           },
@@ -135,7 +151,6 @@ const styles = StyleSheet.create({
 
 export default function HomeScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
   const {
     monthlyStats,
     transactionsForDate,
@@ -214,6 +229,7 @@ export default function HomeScreen() {
               console.log("月份变化:", date);
               // 更新选中日期并重新获取数据
               setSelectedDate(new Date(date.timestamp));
+              loadTransactions(activeAccountId!, date.year, date.month);
             }}
             style={{
               borderRadius: 12,

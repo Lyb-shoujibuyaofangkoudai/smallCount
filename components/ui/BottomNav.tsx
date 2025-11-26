@@ -43,6 +43,7 @@ export default function BottomNav() {
         onPress: () => router.replace('/stats'),
       },
       {
+        // transaction/add
         key: 'add' as const,
         label: '',
         icon: (color: string) => (
@@ -50,7 +51,7 @@ export default function BottomNav() {
             <MaterialIcons name="add" size={29} color="#fff" />
           </View>
         ),
-        onPress: () => router.push('/modal'),
+        onPress: () => router.navigate('/transaction/add/'),
       },
       {
         key: 'ledgers' as const,

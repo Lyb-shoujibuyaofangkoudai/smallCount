@@ -1,7 +1,7 @@
 import { NewTag } from "@/db/repositories/TagRepository";
 import { PaymentMethod } from "./type";
 
-export const CURRENCIES = {
+export const CURRENCIES: Record<string, { name: string; value: string; char: string }> = {
   // 亚洲主要货币
   CNY: { name: '人民币', value: 'CNY', char: '￥' },
   HKD: { name: '港币', value: 'HKD', char: 'HK$' },

@@ -72,6 +72,10 @@ export const RootNavigator = () => {
                 name="modal"
                 options={{ presentation: "modal", title: "Modal", headerShown: false }}
               />
+              <Stack.Screen
+                name="transaction/[...rest]"
+                options={{ presentation: "modal", title: "添加交易", headerShown: false }}
+              />
             </Stack>
           </DatabaseProvider>
         </ThemeProvider>

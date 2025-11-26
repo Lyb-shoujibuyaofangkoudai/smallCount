@@ -8,8 +8,9 @@ import { Toolbar } from '@/components/ui/AddTransaction/Toolbar';
 import { Account } from '@/db/repositories/AccountRepository';
 import { PaymentMethod } from '@/db/repositories/PaymentMethodRepository';
 import { NewTag } from '@/db/repositories/TagRepository';
+import { TransactionService } from '@/db/services/TransactionService';
 import useDataStore from '@/storage/store/useDataStore';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { StatusBar, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,12 +18,15 @@ import Toast from 'react-native-toast-message';
 
 export default function AddTransactionScreen() {
   const router = useRouter();
+  const { rest: [str,id] } = useLocalSearchParams<{ rest: string[] }>();
+  
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState(''); 
   
+  const [isEdit, setIsEdit] = useState(false);
   // 使用数据存储获取标签状态
-  const { tags, loadTags, accounts,addTransaction } = useDataStore();
+  const { tags, loadTags, accounts, addTransaction, paymentMethods, updateTransaction } = useDataStore();
   
   // 根据类型过滤标签
   const expenseList = tags.filter(tag => tag.type === 'expense');
@@ -48,7 +52,58 @@ export default function AddTransactionScreen() {
   // 6. 添加账户状态管理
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  
 
+  useEffect(() => {
+    if(str !== 'add') {
+      setIsEdit(true);
+    }
+  }, [str]);
+
+  useEffect( () => {
+    if(id) {
+     TransactionService.getTransactionDetail(id).then(transactionDetail => {
+      console.log('transactionDetail', transactionDetail);
+      if(transactionDetail) {
+        // 填充表单数据
+        setType(transactionDetail.type as 'expense' | 'income');
+        setAmount(transactionDetail.amount.toString());
+        setNote(transactionDetail.notes || '');
+        
+        // 设置分类
+        if(transactionDetail.tag) {
+          const foundTag = tags.find(tag => tag.id === transactionDetail.tagId);
+          if(foundTag) {
+            setSelectedCategory(foundTag);
+          }
+        }
+        
+        // 设置账户
+        if(transactionDetail.accountId) {
+          const foundAccount = accounts.find(account => account.id === transactionDetail.accountId);
+          if(foundAccount) {
+            setSelectedAccount(foundAccount);
+          }
+        }
+        
+        // 设置日期
+        if(transactionDetail.transactionDate) {
+          const date = new Date(transactionDetail.transactionDate);
+          setSelectedDate(date.toISOString().split('T')[0]);
+        }
+
+        // 设置支付方式
+        if(transactionDetail.paymentMethodId) {
+          const foundPaymentMethod = paymentMethods.find(method => method.id === transactionDetail.paymentMethodId);
+          if(foundPaymentMethod) {
+            console.log('找到支付方式', foundPaymentMethod);
+            setSelectedPaymentMethod(foundPaymentMethod);
+          }
+        }
+      }
+     })
+    }
+  },[id])
 
   useEffect(() => {
     if(accounts.length > 0) {
@@ -126,19 +181,30 @@ export default function AddTransactionScreen() {
         attachmentIds: null, // 简化版本不支持附件
       };
       
-      console.log('正在创建交易:', transactionData);
-      
-      // 调用交易服务创建记录
-      await addTransaction(transactionData);
-      
-      
-      // 显示成功提示
-      Toast.show({
-        type: 'success',
-        text1: '交易创建成功',
-        text2: `已成功记录${type === 'income' ? '收入' : '支出'}¥${amount}`,
-        position: 'bottom'
-      });
+      if (isEdit && id) {
+        // 编辑模式：更新交易
+        await updateTransaction(id, transactionData);
+        
+        // 显示成功提示
+        Toast.show({
+          type: 'success',
+          text1: '交易更新成功',
+          text2: `已成功更新${type === 'income' ? '收入' : '支出'}¥${amount}`,
+          position: 'bottom'
+        });
+      } else {
+        // 创建模式：新增交易
+        console.log('正在创建交易:', transactionData);
+        await addTransaction(transactionData);
+        
+        // 显示成功提示
+        Toast.show({
+          type: 'success',
+          text1: '交易创建成功',
+          text2: `已成功记录${type === 'income' ? '收入' : '支出'}¥${amount}`,
+          position: 'bottom'
+        });
+      }
       
       // 重置表单状态
       setAmount('');
@@ -148,13 +214,13 @@ export default function AddTransactionScreen() {
       router.back();
       
     } catch (error) {
-      console.error('创建交易失败:', error);
+      console.error(isEdit ? '更新交易失败:' : '创建交易失败:', error);
       
       // 显示错误提示
       Toast.show({
         type: 'error',
-        text1: '创建失败',
-        text2: error instanceof Error ? error.message : '创建交易时发生错误',
+        text1: isEdit ? '更新失败' : '创建失败',
+        text2: error instanceof Error ? error.message : `${isEdit ? '更新' : '创建'}交易时发生错误`,
         position: 'bottom'
       });
     }
@@ -178,6 +244,7 @@ export default function AddTransactionScreen() {
       
       {/* 1. Header */}
       <Header 
+        title={isEdit ? '编辑' : '记一笔'}
         currentType={type} 
         onChangeType={(newType) => {
           setType(newType);
@@ -213,9 +280,10 @@ export default function AddTransactionScreen() {
 
       {/* 4. Toolbar */}
       <Toolbar 
-        dateStr="11月20日" // 这个参数现在在Toolbar内部处理，但保留以保持接口兼容
+        date={selectedDate}
         onDateChange={setSelectedDate}
         onPaymentMethodChange={setSelectedPaymentMethod}
+        payMethod={selectedPaymentMethod}
       />
 
       {/* 5. Number Pad (Fixed at bottom) */}

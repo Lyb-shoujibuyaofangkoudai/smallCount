@@ -17,6 +17,7 @@ export interface DataState {
   accountsLoading: boolean;
   accountsError: string | null;
   activeAccountId: string | null;
+  activeAccount: Account | null;
 
   // 交易相关
   transactions: Transaction[];

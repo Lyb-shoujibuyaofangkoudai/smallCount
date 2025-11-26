@@ -7,33 +7,29 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import PaymentMethodModal from './PaymentMethodModal';
 
 interface ToolbarProps {
-  dateStr: string;
+  date: string;
   onDateChange?: (date: string) => void;
   onPaymentMethodChange?: (method: PaymentMethod) => void;
+  payMethod?: PaymentMethod;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ dateStr, onDateChange, onPaymentMethodChange }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMethodChange, payMethod }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | NewPaymentMethod | null>(null);
   const { paymentMethods } = useDataStore();
-
   
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    // 默认日期为当日日期，格式为YYYY-MM-dd
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
-
   useEffect(() => {
     if (paymentMethods.length > 0) {
       const defaultMethod = paymentMethods.find(method => method.isDefault) || paymentMethods[0];
         setSelectedPaymentMethod(defaultMethod);
         if (onPaymentMethodChange) {
-          onPaymentMethodChange(defaultMethod as PaymentMethod);
+          if(payMethod) {
+            setSelectedPaymentMethod(payMethod);
+          } else onPaymentMethodChange(defaultMethod as PaymentMethod);
         }
     }
-  }, []);
+  }, [payMethod]);
 
 
 
@@ -51,7 +47,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({ dateStr, onDateChange, onPayme
   };
 
   const handleDateConfirm = (date: string) => {
-    setSelectedDate(date);
     setShowDatePicker(false);
     // 如果有外部回调函数，调用它
     if (onDateChange) {
@@ -88,7 +83,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ dateStr, onDateChange, onPayme
           className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border"
           onPress={handleDatePress}
         >
-          <Text className="text-xs text-textSecondary">📅 {formatDateForDisplay(selectedDate)}</Text>
+          <Text className="text-xs text-textSecondary">📅 {formatDateForDisplay(date)}</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border"
@@ -109,7 +104,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ dateStr, onDateChange, onPayme
         visible={showDatePicker}
         onClose={handleDateClose}
         onConfirm={handleDateConfirm}
-        currentDate={selectedDate}
+        currentDate={date}
         maxDate={new Date().toISOString().split('T')[0]}
       />
 

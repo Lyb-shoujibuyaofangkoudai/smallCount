@@ -11,12 +11,14 @@ interface HeaderProps {
   onCancel: () => void;
   currentType: TransactionType;
   onChangeType: (type: TransactionType) => void;
+  title?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onCancel,
   currentType,
   onChangeType,
+  title
 }) => {
   const types: TransactionType[] = ["expense", "income"];
   const labels = ["支出", "收入"];
@@ -40,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
         </TouchableOpacity>
 
         {/* 标题 (可选) */}
-        <Text className="text-text font-semibold text-base">记一笔</Text>
+        <Text className="text-text font-semibold text-base">{title || '记一笔'}</Text>
 
         {/* 右侧占位，保持标题居中 */}
         <View className="w-8" />

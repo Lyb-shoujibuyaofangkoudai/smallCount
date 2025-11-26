@@ -1,12 +1,12 @@
 // storage/store/useDataStore.ts
 
-import { Account } from "@/db/repositories/AccountRepository";
 import { Transaction } from "@/db/repositories/TransactionRepository";
 import { AccountService } from "@/db/services/AccountService";
 import { PaymentMethodService } from "@/db/services/PaymentMethodService";
 import { TagService } from "@/db/services/TagService";
 import { TransactionService } from "@/db/services/TransactionService";
 import { UserService } from "@/db/services/UserService";
+import { generateRandomColor } from "@/theme/colors";
 import { defaultStorageManager } from "@/utils/storage";
 import Big from "big.js";
 import { createAppStore } from "../index";
@@ -22,6 +22,7 @@ const initialState: DataState = {
   accountsLoading: false,
   accountsError: null,
   activeAccountId: null,
+  activeAccount: null,
 
   // 交易相关
   transactions: [],
@@ -65,6 +66,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       await get().loadCurrentUser();
       await get().loadAccounts();
       const defaultAccount = get().accounts.find((a) => a.isDefault);
+      set({ activeAccount: defaultAccount || null });
       set({ activeAccountId: defaultAccount!.id });
       // 并行加载基础数据
       await Promise.all([
@@ -90,14 +92,15 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   loadAccounts: async () => {
     try {
       set({ accountsLoading: true, accountsError: null });
-      const user = await defaultStorageManager.get<Account>("user");
-      if (!user) {
+      const currentUser = get().currentUser;
+      if (!currentUser) {
         throw new Error("用户未登录");
       }
-      const accounts = await AccountService.getUserAssets(user.id);
+      const accounts = await AccountService.getUserAssets(currentUser.id);
+      console.log("accounts", accounts.accounts.length);
       set({ accounts: accounts.accounts, accountsLoading: false });
     } catch (error) {
-      set({
+      set({ 
         accountsError: error instanceof Error ? error.message : "加载账户失败",
         accountsLoading: false,
       });
@@ -106,15 +109,20 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
   addAccount: async (accountData) => {
     try {
-      const newAccount = await AccountService.createNewAccount(
+      // 确保传递完整的参数给createNewAccount函数
+      await AccountService.createNewAccount(
         accountData.userId,
         accountData.name,
         accountData.type,
         accountData.balance || 0,
-        accountData.notes || ""
+        accountData.notes || "",
+        accountData.icon || '💰',
+        accountData.color || generateRandomColor(),
+        accountData.isDefault || false,
+        accountData.currency || 'CNY'
       );
-      const { accounts } = get();
-      set({ accounts: [...accounts, newAccount] });
+      // 重新加载账户列表，确保数据最新
+      await get().loadAccounts();
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : "添加账户失败",
@@ -243,6 +251,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       set({ transactionsDataForCalendar: calendarData });
     }
   },
+
   groupTransactionsByDate: async (transactions: Transaction[]) => {
     const grouped: Record<string, any[]> = {};
 
@@ -275,7 +284,6 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         expense: expenseTotal.toNumber(),
         income: incomeTotal.toNumber(),
       };
-
       return {
         title,
         total,
@@ -285,10 +293,11 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
     set({ transactionsForDate: r });
   },
+
   addTransaction: async (transaction) => {
     try {
       const newTransaction =
-        await TransactionService.createTransaction(transaction);
+      await TransactionService.createTransaction(transaction);
       const { transactions } = get();
       set({ transactions: [...transactions, newTransaction] });
 
@@ -297,6 +306,10 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         transaction.transactionDate.getFullYear(),
         transaction.transactionDate.getMonth() + 1
       );
+      // 转换交易数据为日期格式
+      await get().convertTransactionsForCalendar(get().transactions);
+      // 分组交易数据
+      await get().groupTransactionsByDate(get().transactions);
       // 更新相关账户的余额
       await get().loadAccounts();
     } catch (error) {
@@ -313,13 +326,13 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         id,
         transactionData
       );
-      const { transactions } = get();
-      set({
-        transactions: transactions.map((tx) =>
-          tx.id === id ? updatedTransaction : tx
-        ),
-      });
-
+      await get().loadTransactions(
+        get().activeAccountId!,
+        updatedTransaction.transactionDate.getFullYear(),
+        updatedTransaction.transactionDate.getMonth() + 1
+      );
+      await get().convertTransactionsForCalendar(get().transactions);
+      await get().groupTransactionsByDate(get().transactions);
       // 更新相关账户的余额
       await get().loadAccounts();
     } catch (error) {
@@ -335,7 +348,8 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       await TransactionService.deleteTransaction(id);
       const { transactions } = get();
       set({ transactions: transactions.filter((tx) => tx.id !== id) });
-
+      await get().convertTransactionsForCalendar(get().transactions);
+      await get().groupTransactionsByDate(get().transactions);
       // 更新相关账户的余额
       await get().loadAccounts();
     } catch (error) {

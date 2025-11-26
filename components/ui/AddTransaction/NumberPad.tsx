@@ -15,7 +15,7 @@ export const NumberPad: React.FC<NumberPadProps> = ({
   onDelete, 
   onSubmit,
   onSelectAccount,
-  selectedAccountName = '微信'
+  selectedAccountName = 'default'
 }) => {
   const keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '.', '0', 'del'];
 

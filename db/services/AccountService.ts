@@ -14,7 +14,8 @@ export class AccountService {
      * @param notes - 备注（可选）
      * @returns 创建的账户信息
      */
-    static async createNewAccount(userId: string, name: string, type: any, balance: number, notes?: string) {
+    static async createNewAccount(userId: string, name: string, type: any, balance: number, notes?: string, icon?: string, color?: string, isDefault?: boolean, currency?: string) {
+        console.log("经过服务层");
         // 业务规则校验：例如名字不能太长
         if (name.length > 50) throw new Error("账户名称过长");
         
@@ -23,11 +24,11 @@ export class AccountService {
             name,
             type,
             balance,
-            currency: 'CNY',
-            // 其他字段给默认值或 undefined
-            isDefault: false,
+            currency: currency || 'CNY',
+            icon: icon || '💰',
+            color: color || generateRandomColor(),
+            isDefault: isDefault || false,
             notes,
-            color: generateRandomColor(),
         });
     }
 

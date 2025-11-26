@@ -1,5 +1,7 @@
+import { CURRENCIES } from '@/constants/data';
 import { PaymentMethod } from '@/constants/type';
 import { NewTag } from '@/db/repositories/TagRepository';
+import useDataStore from '@/storage/store/useDataStore';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, View } from 'react-native';
@@ -28,6 +30,9 @@ export default function TransactionItem({
   tag,
   icon = "💰"
 }: TransactionItemProps) {
+  const {
+    activeAccount
+  } = useDataStore()
   return (
     <View className="flex-row justify-between items-center py-6 px-5 bg-white bg-gray-200 dark:bg-charcoal-800">
       <View className="flex-1 flex-row items-center">
@@ -40,14 +45,14 @@ export default function TransactionItem({
           <View className="flex-row items-center flex-wrap gap-2">
             {paymentMethod && (
               <View className="px-2 py-0.5 rounded-[4px] bg-secondary">
-                <Text className="text-xs text-white">{paymentMethod.name}</Text>
+                <Text className="text-xs text-white">{paymentMethod.name}</Text> 
               </View>
             )}
           </View>
         </View>
       </View>
       <Text className={`text-xl font-bold ${type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-        {type === 'income' ? '+' : '-'}¥{Math.abs(amount).toFixed(2)}
+        {type === 'income' ? '+' : '-'}{CURRENCIES[activeAccount!.currency as keyof typeof CURRENCIES]?.char || '￥'}{Math.abs(amount).toFixed(2)}
       </Text>
     </View>
   );
