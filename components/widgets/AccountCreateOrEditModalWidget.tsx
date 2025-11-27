@@ -42,21 +42,23 @@ const PRESET_COLORS = [
 ];
 export type FormStateBase = Omit<NewAccount, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
 
-interface AddAccountModalProps {
+interface AccountCreateOrEditModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (data: AccountDataType) => Promise<void>;
+  account?: AccountDataType;
 }
 
 
-export default function AddAccountModal({
+export default function AccountCreateOrEditModal({
   visible,
   onClose,
   onSave,
-}: AddAccountModalProps) {
+  account,
+}: AccountCreateOrEditModalProps) {
   const { currentUser } = useDataStore();
   
-const initialFormState: AccountDataType = {
+  const initialFormState = React.useMemo<AccountDataType>(() => ({
     userId: currentUser!.id,
     name: "",
     type: ACCOUNT_TYPES.CASH,
@@ -71,7 +73,7 @@ const initialFormState: AccountDataType = {
     dueDay: 0,
     isActive: false,
     notes: "",
-  };
+  }), [currentUser]);
 
   const [form, setForm] = useState<AccountDataType>(initialFormState);
   const [loading, setLoading] = useState(false);
@@ -79,10 +81,10 @@ const initialFormState: AccountDataType = {
 
   useEffect(() => {
     if (visible) {
-      setForm(initialFormState);
+      setForm(account || initialFormState);
       setShowCurrencyModal(false);
     }
-  }, [visible]);
+  }, [visible, account, initialFormState]);
 
   const updateField = (key: string, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -153,12 +155,12 @@ const initialFormState: AccountDataType = {
               <TouchableOpacity onPress={onClose}>
                 <Text className="text-text text-base">取消</Text>
               </TouchableOpacity>
-              <Text className="text-text text-lg font-bold">添加账户</Text>
+              <Text className="text-text text-lg font-bold">{account ? "编辑账户" : "添加账户"}</Text>
               <TouchableOpacity onPress={handleSave} disabled={loading}>
                 <Text
                   className={`text-base font-bold ${loading ? "text-gray-400" : "text-primary"}`}
                 >
-                  保存
+                  {account ? "更新" : "保存"}
                 </Text>
               </TouchableOpacity>
             </View>

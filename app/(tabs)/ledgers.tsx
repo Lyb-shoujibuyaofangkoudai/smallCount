@@ -1,6 +1,7 @@
-import AccountCreateModalWidget from "@/components/widgets/AccountCreateOrEditModalWidget";
+import AccountCreateOrEditModalWidget from "@/components/widgets/AccountCreateOrEditModalWidget";
 import SwipeableRow, { SwipeAction } from "@/components/widgets/SwipeableRow";
 import { useTheme } from "@/context/ThemeContext";
+import { Account } from "@/db/repositories/AccountRepository";
 import { AccountDataType } from "@/storage/store/types";
 import useDataStore from "@/storage/store/useDataStore";
 import { addAlphaToColor } from "@/theme/colors";
@@ -22,9 +23,11 @@ export default function AccountsScreen() {
   const [totalBalance, setTotalBalance] = useState(0);
   const [debtBalance, setDebtBalance] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | undefined>();
   const {
     accounts: acList,
     addAccount,
+    updateAccount,
     deleteAccount,
     activeAccountId,
     activeAccount,
@@ -83,21 +86,31 @@ export default function AccountsScreen() {
 
   // 处理编辑操作
   const handleEdit = (id: string) => {
-    console.log("Edit item:", id);
+    const accountToEdit = acList.find(account => account.id === id);
+    if (accountToEdit) {
+      setEditingAccount(accountToEdit);
+      setIsModalVisible(true);
+    }
   };
 
   // 处理添加账户
   const handleAddAccount = () => {
+    setEditingAccount(undefined);
     setIsModalVisible(true);
   };
 
   // 处理保存账户
   const handleSaveAccount = async (accountData: AccountDataType) => {
     try {
-      await addAccount(accountData as any);
+      if (editingAccount) {
+        await updateAccount(editingAccount.id, accountData as any);
+      } else {
+        await addAccount(accountData as any);
+      }
       setIsModalVisible(false);
+      setEditingAccount(undefined);
     } catch (error) {
-      console.error("Failed to add account:", error);
+      console.error("Failed to save account:", error);
     }
   };
 
@@ -294,11 +307,15 @@ export default function AccountsScreen() {
       >
         <Text className="text-primary font-bold text-base">+ 添加新账户</Text>
       </TouchableOpacity>
-      {/* 新增账户弹窗 */}
-      <AccountCreateModalWidget
+      {/* 新增/编辑账户弹窗 */}
+      <AccountCreateOrEditModalWidget
         visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
+        onClose={() => {
+          setIsModalVisible(false);
+          setEditingAccount(undefined);
+        }}
         onSave={handleSaveAccount}
+        account={editingAccount}
       />
     </SafeAreaView>
   );

@@ -118,13 +118,14 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         isActive: acc.id === accountId,
       }));
       const account = updatedAccounts.find((acc) => acc.id === accountId);
+      console.log("切换活跃账户为:", account);
       if (account) {
         // 调用API更新后端数据
         await AccountService.updateAccount(accountId, { isActive: true });
         // 更新本地状态
         set({
           accounts: updatedAccounts,
-          activeAccountId: accountId,
+          activeAccountId: accountId, 
           activeAccount: account,
         });
         // 切换旧的活跃账户为非活跃状态
@@ -148,21 +149,22 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
   addAccount: async (accountData: AccountDataType) => {
     try {
+      console.log("新增用户是否直接设为激活:", accountData.isActive);
       // 直接将accountData作为参数传递给createNewAccount函数
       if(accountData.isActive){
         // 先将当前活跃账户设为非活跃
         await AccountService.updateAccount(get().activeAccountId!, {
           isActive: false,
-        });  
+        });   
       }
       const newAccount = await AccountService.createNewAccount(accountData);
+      await get().loadAccounts(); 
       if(accountData.isActive){
         // 切换新账户为活跃账户
         await get().switchActiveAccount(newAccount.id);
       }
-      await get().loadAccounts(); 
     } catch (error) {
-      set({
+      set({ 
         error: error instanceof Error ? error.message : "添加账户失败",
       });
       throw error;
