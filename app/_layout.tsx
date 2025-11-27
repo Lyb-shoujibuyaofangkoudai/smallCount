@@ -10,7 +10,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <RootNavigator />
-      <Toast />
+      <Toast position="top" />
       <StatusBar style="auto" />
     </ThemeProvider>
   );

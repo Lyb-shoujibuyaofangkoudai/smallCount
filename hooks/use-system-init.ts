@@ -5,8 +5,8 @@ import { Platform } from 'react-native';
 import { db, initDatabase } from '../db/db'; // 1. 静态导入 db 实例
 import migrations from '../db/migrations/migrations'; // 1. 静态导入迁移文件
 import { SeedService } from '../db/services/SeedService';
-
 export const useSystemInit = () => {
+  const { initializeData } = useDataStore((state) => state);
   // 2. 【关键】在最顶层调用 Hook
   // useMigrations 会自动在组件挂载时运行，并返回响应式状态
   const { success: migrationSuccess, error: migrationError } = useMigrations(db, migrations);
@@ -31,7 +31,7 @@ export const useSystemInit = () => {
         
         const result = await SeedService.initDefaultData();
         console.log('种子数据初始化完成', result);
-        await useDataStore.getState().initializeData();
+        await initializeData();
 
         console.log('✅ 系统初始化完全就绪');
         setIsReady(true);

@@ -1,16 +1,16 @@
 // storage/store/useDataStore.ts
 
+import { NewTag } from "@/db/repositories/TagRepository";
 import { Transaction } from "@/db/repositories/TransactionRepository";
 import { AccountService } from "@/db/services/AccountService";
 import { PaymentMethodService } from "@/db/services/PaymentMethodService";
 import { TagService } from "@/db/services/TagService";
 import { TransactionService } from "@/db/services/TransactionService";
 import { UserService } from "@/db/services/UserService";
-import { generateRandomColor } from "@/theme/colors";
 import { defaultStorageManager } from "@/utils/storage";
 import Big from "big.js";
 import { createAppStore } from "../index";
-import type { DataState, DataStore } from "./types";
+import type { AccountDataType, DataState, DataStore } from "./types";
 
 // 初始状态
 const initialState: DataState = {
@@ -51,6 +51,7 @@ const initialState: DataState = {
   lastSyncTime: null,
   isLoading: false,
   error: null,
+  selectedDate: new Date(),
 };
 
 // 创建数据存储
@@ -61,11 +62,11 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   initializeData: async () => {
     try {
       set({ isLoading: true, error: null });
-
+      console.log("开始初始化数据");
       // 加载当前用户
       await get().loadCurrentUser();
       await get().loadAccounts();
-      const defaultAccount = get().accounts.find((a) => a.isDefault);
+      const defaultAccount = get().accounts.find((a) => a.isActive);
       set({ activeAccount: defaultAccount || null });
       set({ activeAccountId: defaultAccount!.id });
       // 并行加载基础数据
@@ -97,32 +98,69 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         throw new Error("用户未登录");
       }
       const accounts = await AccountService.getUserAssets(currentUser.id);
-      console.log("accounts", accounts.accounts.length);
       set({ accounts: accounts.accounts, accountsLoading: false });
     } catch (error) {
-      set({ 
+      set({
         accountsError: error instanceof Error ? error.message : "加载账户失败",
         accountsLoading: false,
       });
     }
   },
 
-  addAccount: async (accountData) => {
+  // 切换活跃账户
+  switchActiveAccount: async (accountId: string) => {
     try {
-      // 确保传递完整的参数给createNewAccount函数
-      await AccountService.createNewAccount(
-        accountData.userId,
-        accountData.name,
-        accountData.type,
-        accountData.balance || 0,
-        accountData.notes || "",
-        accountData.icon || '💰',
-        accountData.color || generateRandomColor(),
-        accountData.isDefault || false,
-        accountData.currency || 'CNY'
-      );
-      // 重新加载账户列表，确保数据最新
-      await get().loadAccounts();
+      // 保存旧的活跃账户ID
+      const { accounts, activeAccountId: oldActiveAccountId } = get();
+      // 更新账户列表中每个账户的isActive状态
+      const updatedAccounts = accounts.map((acc) => ({
+        ...acc,
+        isActive: acc.id === accountId,
+      }));
+      const account = updatedAccounts.find((acc) => acc.id === accountId);
+      if (account) {
+        // 调用API更新后端数据
+        await AccountService.updateAccount(accountId, { isActive: true });
+        // 更新本地状态
+        set({
+          accounts: updatedAccounts,
+          activeAccountId: accountId,
+          activeAccount: account,
+        });
+        // 切换旧的活跃账户为非活跃状态
+        if (oldActiveAccountId) {
+          await AccountService.updateAccount(oldActiveAccountId, {
+            isActive: false,
+          }); 
+        }
+        // 加载新账户的标签
+        await get().loadTags();
+        // 加载新账户的交易
+        await get().loadTransactions(accountId, get().selectedDate.getFullYear(), get().selectedDate.getMonth() + 1);
+      } 
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "切换账户失败",
+      }); 
+      throw error;
+    }
+  },
+
+  addAccount: async (accountData: AccountDataType) => {
+    try {
+      // 直接将accountData作为参数传递给createNewAccount函数
+      if(accountData.isActive){
+        // 先将当前活跃账户设为非活跃
+        await AccountService.updateAccount(get().activeAccountId!, {
+          isActive: false,
+        });  
+      }
+      const newAccount = await AccountService.createNewAccount(accountData);
+      if(accountData.isActive){
+        // 切换新账户为活跃账户
+        await get().switchActiveAccount(newAccount.id);
+      }
+      await get().loadAccounts(); 
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : "添加账户失败",
@@ -154,9 +192,14 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
   deleteAccount: async (id) => {
     try {
-      await AccountService.deleteAccount(id);
-      const { accounts } = get();
-      set({ accounts: accounts.filter((acc) => acc.id !== id) });
+      await AccountService.setAsArchived(id);
+      const { accounts,activeAccountId } = get();
+      const newAcountsList = accounts.filter((acc) => acc.id !== id)
+      if(activeAccountId === id){
+        // 如果删除的是当前活跃账户，切换到第一个账户
+        await get().switchActiveAccount(newAcountsList[0].id);
+      }
+      set({ accounts: newAcountsList });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : "删除账户失败",
@@ -297,7 +340,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   addTransaction: async (transaction) => {
     try {
       const newTransaction =
-      await TransactionService.createTransaction(transaction);
+        await TransactionService.createTransaction(transaction);
       const { transactions } = get();
       set({ transactions: [...transactions, newTransaction] });
 
@@ -364,22 +407,26 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   loadTags: async () => {
     try {
       set({ tagsLoading: true, tagsError: null });
-
-      const tags = await TagService.getAllTags();
+      const tags = await TagService.getTagsByAccountId(get().activeAccountId!);
+      console.log("根据账户ID过滤标签:", tags.length);
       set({ tags, tagsLoading: false });
     } catch (error) {
       set({
         tagsError: error instanceof Error ? error.message : "加载标签失败",
         tagsLoading: false,
-      });
-    }
+      }); 
+    } 
   },
 
-  addTag: async (tagData) => {
+  addTag: async (tagData: Omit<NewTag, "id" | "accountIds" | "updatedAt" | "createdAt">) => {
     try {
-      const newTag = await TagService.createTag(tagData);
+      const newTag = await TagService.createTag({
+        ...tagData,
+        accountIds: [get().activeAccountId!].join(','),
+      });
       const { tags } = get();
       set({ tags: [...tags, newTag] });
+      return newTag;
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : "添加标签失败",
@@ -438,6 +485,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   addPaymentMethod: async (paymentMethodData) => {
     try {
       const newPaymentMethod = await PaymentMethodService.createPaymentMethod(
+        [get().activeAccountId!].join(','),
         paymentMethodData.name,
         paymentMethodData.icon || "",
         paymentMethodData.isDefault || false
@@ -495,8 +543,12 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
     try {
       // 从本地存储获取当前用户ID
       const userID = (await defaultStorageManager.get("userID")) as string;
+      let user;
       if (userID) {
-        const user = await UserService.getUserById(userID);
+        user = await UserService.getUserById(userID);
+        set({ currentUser: user || null });
+      } else {
+        user = await UserService.findUserAny();
         set({ currentUser: user || null });
       }
     } catch (error) {
@@ -539,6 +591,10 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
   clearAllData: () => {
     set(initialState);
+  },
+
+  setSelectedDate: async (date: Date) => {
+    set({ selectedDate: date });
   },
 }));
 

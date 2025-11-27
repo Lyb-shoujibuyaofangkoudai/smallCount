@@ -156,16 +156,15 @@ export default function HomeScreen() {
     transactionsForDate,
     transactionsDataForCalendar,
     activeAccountId,
-    loadTransactions
+    loadTransactions,
+    selectedDate, 
+    setSelectedDate
   } = useDataStore();
 
-  // 日期选择器状态
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showMonthSelect, setShowMonthSelect] = useState(false);
 
   // Tab切换状态
   const [activeTab, setActiveTab] = useState<"calendar" | "details">("details");
-
 
   const [loading, setLoading] = useState(false);
 
@@ -174,9 +173,12 @@ export default function HomeScreen() {
     const newDate = new Date(year, month - 1, 1); // 月份从0开始，所以需要减1
     setSelectedDate(newDate);
     setShowMonthSelect(false);
-    loadTransactions(activeAccountId!, newDate.getFullYear(), newDate.getMonth() + 1);
+    loadTransactions(
+      activeAccountId!,
+      newDate.getFullYear(),
+      newDate.getMonth() + 1
+    );
   };
-
 
   // 显示月份选择器
   const showMonthSelectModal = () => {
@@ -241,7 +243,10 @@ export default function HomeScreen() {
           <View className="h-8" />
         </ScrollView>
       ) : (
-        <DetailList transactionsByDate={transactionsForDate} loading={loading} />
+        <DetailList
+          transactionsByDate={transactionsForDate}
+          loading={loading}
+        />
       )}
 
       {/* 月份选择弹窗 */}

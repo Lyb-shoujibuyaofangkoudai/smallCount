@@ -1,7 +1,7 @@
 // storage/store/types.ts
 
 // 导入数据库实体类型
-import type { Account } from "@/db/repositories/AccountRepository";
+import type { Account, NewAccount } from "@/db/repositories/AccountRepository";
 import type { PaymentMethod } from "@/db/repositories/PaymentMethodRepository";
 import type { Tag } from "@/db/repositories/TagRepository";
 import type { Transaction } from "@/db/repositories/TransactionRepository";
@@ -56,6 +56,8 @@ export interface DataState {
   lastSyncTime: number | null;
   isLoading: boolean;
   error: string | null;
+  selectedDate: Date;
+  
 }
 
 // 数据操作接口
@@ -65,6 +67,7 @@ export interface DataActions {
 
   // 账户操作
   loadAccounts: () => Promise<void>;
+  switchActiveAccount: (accountId: string) => void;
   addAccount: (
     account: Omit<Account, "id" | "createdAt" | "updatedAt">
   ) => Promise<void>;
@@ -90,7 +93,7 @@ export interface DataActions {
 
   // 标签操作
   loadTags: () => Promise<void>;
-  addTag: (tag: Omit<Tag, "id" | "createdAt">) => Promise<void>;
+  addTag: (tag: Omit<Tag, "id" | "accountIds" | "updatedAt" | "createdAt">) => Promise<Tag>;
   updateTag: (id: string, tag: Partial<Tag>) => Promise<void>;
   deleteTag: (id: string) => Promise<void>;
 
@@ -112,6 +115,8 @@ export interface DataActions {
   refreshAllData: () => Promise<void>;
   clearError: () => void;
   clearAllData: () => void;
+
+  setSelectedDate: (date: Date) => Promise<void>;
 }
 
 // 数据存储完整类型
@@ -147,3 +152,5 @@ export interface DataStats {
     };
   };
 }
+
+export type AccountDataType = Omit<NewAccount, 'id'  | 'createdAt' | 'updatedAt'>;

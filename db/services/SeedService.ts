@@ -1,7 +1,8 @@
-import { DEFAULT_ACCOUNT_NAME, DEFAULT_EMAIL, DEFAULT_TAGS, DEFAULT_USERNAME, PAYMENT_METHODS } from '@/constants/data';
+import { CURRENCIES, DEFAULT_ACCOUNT_NAME, DEFAULT_EMAIL, DEFAULT_TAGS, DEFAULT_USERNAME, PAYMENT_METHODS } from '@/constants/data';
 import { defaultStorageManager } from '@/utils/storage';
 import { AccountRepository } from '../repositories/AccountRepository';
 import { UserRepository } from '../repositories/UserRepository';
+import { ACCOUNT_TYPES } from '../schema';
 import { AccountService } from './AccountService';
 import { PaymentMethodService } from './PaymentMethodService';
 import { TagService } from './TagService';
@@ -26,7 +27,15 @@ async function ensureDefaultAccount(userId: string) {
   const accountRepo = new AccountRepository();
   const list = await accountRepo.findByUser(userId);
   if (list.length === 0) {
-    const acc = await AccountService.createNewAccount(userId, DEFAULT_ACCOUNT_NAME, 'cash', 0, '这是默认账户');
+    const acc = await AccountService.createNewAccount({
+      userId,
+      name: DEFAULT_ACCOUNT_NAME,
+      type: ACCOUNT_TYPES.CASH,
+      currency:  CURRENCIES.CNY.value,
+      isDefault: true,
+      isActive: true,
+      notes: '这是默认账户',
+    });
     await AccountService.setAsDefault(userId, acc.id);
     return { count: 1, defaultAccountId: acc.id, accountInfo: acc };
   }
@@ -40,9 +49,10 @@ async function ensureDefaultAccount(userId: string) {
   return { count: list.length, defaultAccountId: def.id, accountInfo: def };
 }
 
-const addDefaultTagsDataToDb = async () => {
+const addDefaultTagsDataToDb = async (accountId: string) => {
      // 创建一些标签数据 - 如果没有标签数据 模拟用户进行几笔标签
     const existingTags = await TagService.getAllTags();
+    console.log('已存在标签:', existingTags.length);
     if (existingTags.length === 0) {
       try {
         // 使用TagService的批量创建方法，这样可以复用业务逻辑校验
@@ -58,7 +68,7 @@ const addDefaultTagsDataToDb = async () => {
     }
 };
 
-const addDefaultPaymentMethodsDataToDb = async () => {
+const addDefaultPaymentMethodsDataToDb = async (accountId: string) => {
      // 创建一些支付方式数据 - 如果没有支付方式数据 模拟用户进行几笔支付方式
     const existingPaymentMethods = await PaymentMethodService.getAllPaymentMethods();
     if (existingPaymentMethods.length === 0) {
@@ -103,10 +113,10 @@ export const SeedService = {
     // await mockTransactionsDataToDb(account);
 
     // 4. 初始化标签数据 - 如果没有标签数据 则添加默认标签
-    await addDefaultTagsDataToDb();
+    await addDefaultTagsDataToDb(account.defaultAccountId);
 
     // 5. 初始化支付方式数据 - 如果没有支付方式数据 则添加默认支付方式
-    await addDefaultPaymentMethodsDataToDb();
+    await addDefaultPaymentMethodsDataToDb(account.defaultAccountId);
    
    
     // 返回初始化结果

@@ -163,7 +163,17 @@ const _init = async () => {
             // await expoDb.execAsync('PRAGMA journal_mode = WAL;'); 
             
             await runWebMigrations(expoDb);
-            _db = drizzle(expoDb, { schema });
+            _db = drizzle(expoDb, { 
+              schema,
+              logger: {
+                logQuery: (query, params) => {
+                  console.log('📝 SQL Query:', query);
+                  if (params && params.length > 0) {
+                    console.log('📝 SQL Params:', params);
+                  }
+                }
+              }
+            });
             console.log('✅ Web Database initialized');
         } catch (e: any) {
             // 专门处理 Web 锁错误
@@ -205,7 +215,17 @@ export const db = new Proxy({} as DbType, {
     if (Platform.OS !== 'web') {
       // Native 端自动同步回退
       const expoDb = openDatabaseSync(DB_NAME);
-      _db = drizzle(expoDb, { schema });
+      _db = drizzle(expoDb, { 
+        schema,
+        logger: {
+          logQuery: (query, params) => {
+            console.log('📝 SQL Query:', query);
+            if (params && params.length > 0) {
+              console.log('📝 SQL Params:', params);
+            }
+          }
+        }
+      });
       return (_db as any)[prop];
     }
 

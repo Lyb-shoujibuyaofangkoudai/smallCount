@@ -79,12 +79,6 @@ npm run web        # Web
 npx drizzle-kit generate
 ```
 
-然后应用迁移：
-
-```bash
-npx drizzle-kit migrate
-```
-
 ## 数据库设计
 
 应用使用SQLite数据库，主要包含以下表：

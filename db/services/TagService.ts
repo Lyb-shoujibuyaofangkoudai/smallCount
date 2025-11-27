@@ -12,15 +12,16 @@ export const TagService = {
    * @param tagData - 标签数据
    * @returns 创建的标签对象
    */
-  async createTag(tagData: Omit<NewTag, 'id' | 'createdAt'>) {
+  async createTag(tagData: Omit<NewTag, 'id' | 'updatedAt' | 'createdAt'>) {
     // 业务规则校验
     if (!tagData.name || tagData.name.trim().length === 0) {
       throw new Error('标签名称不能为空');
-    }
+    } 
     
     if (tagData.name.length > 50) {
       throw new Error('标签名称不能超过50个字符');
     }
+
     
     // 检查标签名称是否已存在
     const existingTags = await tagRepo.findAll();
@@ -191,6 +192,31 @@ export const TagService = {
       
       return match;
     });
+  },
+
+  /**
+   * 根据账户ID获取标签
+   * @param accountId - 账户ID
+   * @returns 匹配的标签列表（accountIds包含该账户ID或accountIds为空的标签）
+   */
+  async getTagsByAccountId(accountId?: string) {
+    return await tagRepo.findByAccountId(accountId);
+  },
+
+  /**
+   * 根据账户ID和类型获取标签
+   * @param accountId - 账户ID
+   * @param type - 标签类型 (expense/income)
+   * @returns 匹配的标签列表
+   */
+  async getTagsByAccountIdAndType(accountId?: string, type?: 'expense' | 'income') {
+    const tags = await tagRepo.findByAccountId(accountId);
+    
+    if (!type) {
+      return tags;
+    }
+    
+    return tags.filter(tag => tag.type === type);
   },
 
   /**

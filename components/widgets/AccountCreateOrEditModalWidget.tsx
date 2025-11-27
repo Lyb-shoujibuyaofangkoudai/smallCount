@@ -1,29 +1,34 @@
 import { CURRENCIES } from "@/constants/data";
+import { NewAccount } from "@/db/repositories/AccountRepository";
+import { ACCOUNT_TYPES } from "@/db/schema";
+import { AccountDataType } from "@/storage/store/types";
 import useDataStore from "@/storage/store/useDataStore";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-const ACCOUNT_TYPES = [
-  { label: "现金", value: "cash", icon: "cash-outline" },
-  { label: "银行卡", value: "bank", icon: "card-outline" },
-  { label: "信用卡", value: "credit_card", icon: "card" },
-  { label: "数字钱包", value: "digital_wallet", icon: "wallet-outline" },
-  { label: "投资", value: "investment", icon: "trending-up-outline" },
-  { label: "借入/贷出", value: "loan", icon: "swap-horizontal-outline" },
-];
+const ACCOUNT_TYPES_ARR = [
+  { label: "现金", value: ACCOUNT_TYPES.CASH, icon: "cash-outline" },
+  { label: "银行卡", value: ACCOUNT_TYPES.BANK, icon: "card-outline" },
+  { label: "信用卡", value: ACCOUNT_TYPES.CREDIT_CARD, icon: "card" },
+  { label: "数字钱包", value: ACCOUNT_TYPES.DIGITAL_WALLET, icon: "wallet-outline" },
+  { label: "投资", value: ACCOUNT_TYPES.INVESTMENT, icon: "trending-up-outline" },
+  { label: "借入/贷出", value: ACCOUNT_TYPES.LOAN, icon: "swap-horizontal-outline" },
+]
+
+
 
 const PRESET_COLORS = [
   "#FF6B6B",
@@ -35,38 +40,42 @@ const PRESET_COLORS = [
   "#D4A5A5",
   "#9B59B6",
 ];
+export type FormStateBase = Omit<NewAccount, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
 
 interface AddAccountModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: AccountDataType) => Promise<void>;
 }
+
 
 export default function AddAccountModal({
   visible,
   onClose,
   onSave,
 }: AddAccountModalProps) {
-  const initialFormState = {
+  const { currentUser } = useDataStore();
+  
+const initialFormState: AccountDataType = {
+    userId: currentUser!.id,
     name: "",
-    type: "cash",
-    balance: "",
-    currency: "CNY",
+    type: ACCOUNT_TYPES.CASH,
+    balance: 0,
+    currency: CURRENCIES.CNY.value,
     icon: "💰",
     color: PRESET_COLORS[0],
     accountNumber: "",
     bankName: "",
-    creditLimit: "",
-    billingDay: "",
-    dueDay: "",
-    isDefault: false,
+    creditLimit: 0,
+    billingDay: 0,
+    dueDay: 0,
+    isActive: false,
     notes: "",
   };
 
-  const [form, setForm] = useState(initialFormState);
+  const [form, setForm] = useState<AccountDataType>(initialFormState);
   const [loading, setLoading] = useState(false);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false); // 控制货币选择器显示
-  const { currentUser } = useDataStore();
 
   useEffect(() => {
     if (visible) {
@@ -90,23 +99,24 @@ export default function AddAccountModal({
       const accountData = {
         ...form,
         userId: currentUser!.id,
-        balance: parseFloat(form.balance) || 0.0,
+        balance: form.balance,
+        currency: form.currency || CURRENCIES.CNY.value, // 确保currency不为undefined
         creditLimit:
-          form.type === "credit_card"
-            ? parseFloat(form.creditLimit) || 0.0
+          form.type === ACCOUNT_TYPES.CREDIT_CARD
+            ? form.creditLimit
             : null,
         billingDay:
-          form.type === "credit_card" && form.billingDay
-            ? parseInt(form.billingDay)
+          form.type === ACCOUNT_TYPES.CREDIT_CARD && form.billingDay
+            ? form.billingDay
             : null,
         dueDay:
-          form.type === "credit_card" && form.dueDay
-            ? parseInt(form.dueDay)
-            : null,
-        bankName: ["bank", "credit_card"].includes(form.type)
+          form.type === ACCOUNT_TYPES.CREDIT_CARD && form.dueDay
+            ? form.dueDay
+            : null, 
+        bankName: (form.type === ACCOUNT_TYPES.BANK || form.type === ACCOUNT_TYPES.CREDIT_CARD)
           ? form.bankName
           : null,
-        accountNumber: ["bank", "credit_card", "loan"].includes(form.type)
+        accountNumber: (form.type === ACCOUNT_TYPES.BANK || form.type === ACCOUNT_TYPES.CREDIT_CARD || form.type === ACCOUNT_TYPES.LOAN)
           ? form.accountNumber
           : null,
       };
@@ -122,7 +132,7 @@ export default function AddAccountModal({
   };
 
   // 获取当前选中的货币对象
-  const currentCurrency = CURRENCIES[form.currency] || CURRENCIES.CNY;
+  const currentCurrency = form.currency && CURRENCIES[form.currency] || CURRENCIES.CNY;
 
   return (
     <Modal
@@ -206,14 +216,17 @@ export default function AddAccountModal({
                 </Text>
 
                 {/* 金额输入框 */}
-                <View className="bg-background flex-row items-center rounded-lg border border-gray-500/20 px-3 h-12 mb-3">
+                <View className="bg-background flex-row items-center rounded-lg border border-gray-500/20 px-3 mb-3">
                   <TextInput
                     className="flex-1 text-text text-lg font-medium"
                     placeholder="0.00"
                     placeholderTextColor="#9CA3AF"
                     keyboardType="numeric"
-                    value={form.balance}
-                    onChangeText={(text) => updateField("balance", text)}
+                    value={String(form.balance ?? "")}
+                    onChangeText={(text) => {
+                      updateField("balance", text)
+                      updateField("initialBalance", text)
+                    }}
                   />
                   <TouchableOpacity
                     className="bg-gray-500/20 px-2 py-1 rounded"
@@ -233,7 +246,7 @@ export default function AddAccountModal({
                   账户类型
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
-                  {ACCOUNT_TYPES.map((type) => (
+                  {ACCOUNT_TYPES_ARR.map((type) => (
                     <TouchableOpacity
                       key={type.value}
                       onPress={() => updateField("type", type.value)}
@@ -269,7 +282,7 @@ export default function AddAccountModal({
                       </Text>
                       <TextInput
                         className="bg-card text-text p-2 rounded border border-gray-500/10"
-                        value={form.bankName}
+                        value={String(form.bankName ?? "")}
                         onChangeText={(t) => updateField("bankName", t)}
                         placeholder="例如：中国银行"
                         placeholderTextColor="#9CA3AF"
@@ -281,7 +294,7 @@ export default function AddAccountModal({
                       </Text>
                       <TextInput
                         className="bg-card text-text p-2 rounded border border-gray-500/10"
-                        value={form.accountNumber}
+                        value={String(form.accountNumber ?? "")}
                         onChangeText={(t) => updateField("accountNumber", t)}
                         keyboardType="number-pad"
                         placeholder="最后4位即可"
@@ -292,7 +305,7 @@ export default function AddAccountModal({
                 </View>
               )}
 
-              {form.type === "credit_card" && (
+              {/* {form.type === "credit_card" && (
                 <View className="mb-4 bg-background p-3 rounded-lg">
                   <Text className="text-text font-bold mb-3">信用卡详情</Text>
                   <View className="flex-row gap-3 mb-3">
@@ -302,7 +315,7 @@ export default function AddAccountModal({
                       </Text>
                       <TextInput
                         className="bg-card text-text p-2 rounded border border-gray-500/10"
-                        value={form.creditLimit}
+                        value={String(form.creditLimit ?? "")}
                         onChangeText={(t) => updateField("creditLimit", t)}
                         keyboardType="numeric"
                         placeholder="0.00"
@@ -317,7 +330,7 @@ export default function AddAccountModal({
                       </Text>
                       <TextInput
                         className="bg-card text-text p-2 rounded border border-gray-500/10"
-                        value={form.billingDay}
+                        value={String(form.billingDay ?? "")}
                         onChangeText={(t) => updateField("billingDay", t)}
                         keyboardType="number-pad"
                         placeholder="1-31"
@@ -331,7 +344,7 @@ export default function AddAccountModal({
                       </Text>
                       <TextInput
                         className="bg-card text-text p-2 rounded border border-gray-500/10"
-                        value={form.dueDay}
+                        value={String(form.dueDay ?? "")}
                         onChangeText={(t) => updateField("dueDay", t)}
                         keyboardType="number-pad"
                         placeholder="1-31"
@@ -341,7 +354,7 @@ export default function AddAccountModal({
                     </View>
                   </View>
                 </View>
-              )}
+              )} */}
 
               {/* 5. 更多选项 */}
               <View className="mb-4 bg-background p-3 rounded-lg">
@@ -350,8 +363,8 @@ export default function AddAccountModal({
                   <Switch
                     trackColor={{ false: "#767577", true: "#81b0ff" }}
                     thumbColor={form.isDefault ? "#f4f3f4" : "#f4f3f4"}
-                    onValueChange={(val) => updateField("isDefault", val)}
-                    value={form.isDefault}
+                    onValueChange={(val) => updateField("isActive", val)}
+                    value={form.isActive ?? false}
                   />
                 </View>
                 <View>
@@ -362,7 +375,7 @@ export default function AddAccountModal({
                     className="bg-card text-text p-2 rounded border border-gray-500/10 h-20"
                     multiline
                     textAlignVertical="top"
-                    value={form.notes}
+                    value={String(form.notes ?? "")}
                     onChangeText={(t) => updateField("notes", t)}
                     placeholder="添加备注..."
                     placeholderTextColor="#9CA3AF"

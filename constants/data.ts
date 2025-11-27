@@ -36,8 +36,8 @@ export const DEFAULT_USERNAME = 'default_user';
 export const DEFAULT_EMAIL = 'default@local';
 export const DEFAULT_ACCOUNT_NAME = 'default';
 export const DEFAULT_TAGS: {
-  expenses: Omit<NewTag, 'id' | 'createdAt'>[];
-  incomes: Omit<NewTag, 'id' | 'createdAt'>[];
+  expenses: Omit<NewTag, 'id' | 'accountIds' | 'createdAt'>[];
+  incomes: Omit<NewTag, 'id' | 'accountIds' | 'createdAt'>[];
 } = {
   // ===========================
   // 支出分类 (Expenses)

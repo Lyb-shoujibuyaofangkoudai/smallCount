@@ -1,6 +1,7 @@
 import { useTheme } from "@/context/ThemeContext";
 import { NewTag } from "@/db/repositories/TagRepository";
 import { TagService } from "@/db/services/TagService";
+import useDataStore from "@/storage/store/useDataStore";
 import { addAlphaToColor } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -32,7 +33,7 @@ interface CategoryManageModalProps {
   onClose: () => void;
   categories: NewTag[];
   currentType: NewTag["type"] & string; // 'expense' | 'income'
-  onUpdateCategories: (newCategories: NewTag[]) => void;
+  onUpdateCategories: (newCategories: Omit<NewTag, 'id' | 'accountIds' | 'createdAt'>[]) => void;
 }
 
 // 预设的可选图标
@@ -86,6 +87,10 @@ export const CategoryManageModal: React.FC<CategoryManageModalProps> = ({
   onUpdateCategories,
 }) => {
   const { theme } = useTheme();
+  const {
+    addTag,
+    updateTag
+  } = useDataStore()
   // 模式：'list' (列表) | 'edit' (编辑/新增)
   const [mode, setMode] = useState<"list" | "edit">("list");
 
@@ -152,10 +157,16 @@ export const CategoryManageModal: React.FC<CategoryManageModalProps> = ({
           ? { ...cat, name: formName, icon: formIcon, color: formColor }
           : cat
       );
+      await updateTag(editingId,{
+        name: formName,
+        icon: formIcon,
+        color: formColor,
+        type: currentType,
+      })
     } else {
       // 新增 - 保存到数据库
       try {
-        const newTag = await TagService.createTag({
+        const newTag = await addTag({
           name: formName.trim(),
           icon: formIcon,
           color: formColor,

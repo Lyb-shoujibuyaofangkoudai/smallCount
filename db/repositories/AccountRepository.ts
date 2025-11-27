@@ -25,10 +25,10 @@ export class AccountRepository extends BaseRepository<Account> {
   // 获取用户的所有账户
   async findByUser(userId: string): Promise<Account[]> {
     return await this.db.query.accounts.findMany({
-      where: eq(accounts.userId, userId),
+      where: and(eq(accounts.userId, userId), eq(accounts.isArchived, false)),
       orderBy: (accounts, { desc }) => [desc(accounts.createdAt)],
     });
-  }
+  } 
 
   // 更新账户
   async update(id: string, data: Partial<Omit<NewAccount, 'id' | 'userId' | 'createdAt'>>): Promise<Account | undefined> {
@@ -57,5 +57,12 @@ export class AccountRepository extends BaseRepository<Account> {
             .set({ isDefault: true })
             .where(eq(accounts.id, accountId));
       });
+  }
+
+  // 设置账户为已归档
+  async setAsArchived(accountId: string): Promise<void> {
+    await this.db.update(accounts)
+      .set({ isArchived: true })
+      .where(eq(accounts.id, accountId));
   }
 }

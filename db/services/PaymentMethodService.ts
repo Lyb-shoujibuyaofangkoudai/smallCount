@@ -1,11 +1,11 @@
 // db/services/PaymentMethodService.ts
-import { PaymentMethodRepository } from '../repositories/PaymentMethodRepository';
+import { NewPaymentMethod, PaymentMethodRepository } from '../repositories/PaymentMethodRepository';
 
 const paymentMethodRepo = new PaymentMethodRepository();
 
 export const PaymentMethodService = {
     // 创建新的支付方式
-    async createPaymentMethod(name: string, icon?: string, isDefault?: boolean) {
+    async createPaymentMethod(accountIds: string, name: string, icon?: string, isDefault?: boolean) {
         // 业务规则校验
         if (!name || name.trim().length === 0) {
             throw new Error("支付方式名称不能为空");
@@ -27,6 +27,7 @@ export const PaymentMethodService = {
         }
 
         return await paymentMethodRepo.create({
+            accountIds,
             name: name.trim(),
             icon: icon || '💳',
             isDefault: isDefault || false,
@@ -168,7 +169,7 @@ export const PaymentMethodService = {
     },
 
     // 批量创建支付方式
-    async createPaymentMethodsBatch(paymentMethodsData: { name: string; icon?: string; isDefault?: boolean }[]) {
+    async createPaymentMethodsBatch(paymentMethodsData: Omit<NewPaymentMethod, 'id' | 'createdAt' | 'updatedAt'>[]) {
         // 批量校验
         if (!paymentMethodsData || paymentMethodsData.length === 0) {
             throw new Error("支付方式数据不能为空");
@@ -219,6 +220,7 @@ export const PaymentMethodService = {
 
         // 准备批量创建数据
         const createData = paymentMethodsData.map(data => ({
+            ...data,
             name: data.name.trim(),
             icon: data.icon || '💳',
             isDefault: data.isDefault || false,

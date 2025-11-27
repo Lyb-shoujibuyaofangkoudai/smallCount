@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `initial_balance` real DEFAULT 0;

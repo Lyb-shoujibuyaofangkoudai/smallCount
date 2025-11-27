@@ -186,4 +186,9 @@ export class UserService {
     const existingUser = await userRepository.findByEmail(email.trim());
     return !existingUser;
   }
+
+  static async findUserAny() {
+    return await userRepository.findAny();
+  }
+
 }
