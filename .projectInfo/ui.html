@@ -14,7 +14,8 @@
         --accent-orange: #f59e0b;
 
         /* Constants & Default Primary */
-        --primary: var(--accent-green); /* Default to green */
+        --primary: var(--accent-green);
+        /* Default to green */
         --danger: #ef4444;
         --screen-w: 375px;
         --screen-h: 812px;
@@ -89,7 +90,8 @@
       }
 
       body {
-        background-color: #121212; /* Outer Canvas Darker */
+        background-color: #121212;
+        /* Outer Canvas Darker */
         height: 100vh;
         overflow: hidden;
         display: flex;
@@ -108,10 +110,12 @@
         justify-content: space-between;
         z-index: 100;
       }
+
       .toolbar h1 {
         font-size: 18px;
         font-weight: 600;
       }
+
       .btn-toggle {
         background: #333;
         border: 1px solid #444;
@@ -124,6 +128,7 @@
         align-items: center;
         gap: 6px;
       }
+
       .btn-toggle:hover {
         background: #444;
       }
@@ -150,7 +155,8 @@
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         overflow: hidden;
         flex-shrink: 0;
-        border: 8px solid #1a1a1a; /* Phone bezel */
+        border: 8px solid #1a1a1a;
+        /* Phone bezel */
       }
 
       .notch {
@@ -174,11 +180,14 @@
         overflow-y: auto;
         padding-top: 44px;
         padding-bottom: 80px;
-        color: var(--text-main); /* Global text color */
+        color: var(--text-main);
+        /* Global text color */
       }
+
       .screen-content.no-tab {
         padding-bottom: 0;
       }
+
       .screen-content::-webkit-scrollbar {
         display: none;
       }
@@ -189,23 +198,28 @@
         font-weight: 700;
         color: var(--text-main);
       }
+
       .h2 {
         font-size: 18px;
         font-weight: 600;
         color: var(--text-main);
       }
+
       .text-sm {
         font-size: 12px;
         color: var(--text-sub);
       }
+
       .text-md {
         font-size: 14px;
         color: var(--text-main);
       }
+
       .money-exp {
         color: var(--text-main);
         font-weight: 600;
       }
+
       .money-inc {
         color: var(--primary);
         font-weight: 600;
@@ -237,7 +251,8 @@
         padding: 12px 16px 8px 16px;
         font-size: 12px;
         color: var(--text-sub);
-        background: var(--bg-app); /* Match app bg for sticky */
+        background: var(--bg-app);
+        /* Match app bg for sticky */
         position: sticky;
         top: 0;
         z-index: 10;
@@ -250,13 +265,16 @@
         background: var(--bg-card);
         padding: 16px;
         margin-bottom: 1px;
-        border-bottom: 1px solid var(--bg-app); /* Use bg-app as separator */
+        border-bottom: 1px solid var(--bg-app);
+        /* Use bg-app as separator */
       }
+
       .transaction-item:last-child {
         border-bottom-left-radius: 12px;
         border-bottom-right-radius: 12px;
         border-bottom: none;
       }
+
       .transaction-item:first-child {
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
@@ -274,9 +292,11 @@
         margin-right: 12px;
         color: var(--text-main);
       }
+
       .t-info {
         flex: 1;
       }
+
       .t-amount {
         font-weight: 600;
         font-size: 16px;
@@ -298,6 +318,7 @@
         padding-top: 12px;
         z-index: 99;
       }
+
       .tab-item {
         display: flex;
         flex-direction: column;
@@ -308,9 +329,11 @@
         width: 60px;
         cursor: pointer;
       }
+
       .tab-item.active {
         color: var(--primary);
       }
+
       .fab {
         width: 56px;
         height: 56px;
@@ -319,7 +342,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--text-on-primary); /* Inverted color */
+        color: var(--text-on-primary);
+        /* Inverted color */
         margin-top: -24px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         font-size: 28px;
@@ -331,6 +355,7 @@
         padding: 16px;
         /* margin-bottom: 8px; Remove bottom margin for tabs */
       }
+
       .date-selector {
         display: flex;
         align-items: center;
@@ -341,6 +366,7 @@
         border-radius: 8px;
         transition: background 0.2s;
       }
+
       .date-selector:active {
         background: var(--icon-bg);
       }
@@ -348,11 +374,13 @@
       /* NEW: Home Internal Tabs (Segmented Control style) */
       .home-tabs-control {
         display: flex;
-        background: var(--pill-bg); /* Use pill background for container */
+        background: var(--pill-bg);
+        /* Use pill background for container */
         border-radius: 10px;
         padding: 4px;
         margin: 0 16px 16px 16px;
       }
+
       .home-tab-btn {
         flex: 1;
         text-align: center;
@@ -364,6 +392,7 @@
         cursor: pointer;
         transition: all 0.2s ease;
       }
+
       .home-tab-btn.active {
         background: var(--bg-card);
         color: var(--text-main);
@@ -372,17 +401,22 @@
 
       /* Home Tab Content Containers */
       .home-tab-view {
-        display: none; /* Hidden by default */
+        display: none;
+        /* Hidden by default */
         animation: fadeIn 0.3s ease;
       }
+
       .home-tab-view.active {
-        display: block; /* Show active */
+        display: block;
+        /* Show active */
       }
+
       @keyframes fadeIn {
         from {
           opacity: 0;
           transform: translateY(5px);
         }
+
         to {
           opacity: 1;
           transform: translateY(0);
@@ -394,6 +428,7 @@
         padding: 0 16px;
         margin-bottom: 24px;
       }
+
       .cal-header {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -402,13 +437,16 @@
         color: var(--text-sub);
         margin-bottom: 12px;
       }
+
       .cal-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 10px;
       }
+
       .cal-day {
-        aspect-ratio: 1; /* Make cells square */
+        aspect-ratio: 1;
+        /* Make cells square */
         background: var(--bg-card);
         border-radius: 14px;
         display: flex;
@@ -421,10 +459,12 @@
         box-shadow: var(--shadow);
         cursor: pointer;
       }
+
       .cal-date {
         font-weight: 600;
         margin-bottom: 2px;
       }
+
       .cal-data {
         font-size: 9px;
         line-height: 1.2;
@@ -433,9 +473,11 @@
         align-items: center;
         font-weight: 500;
       }
+
       .cal-inc {
         color: var(--primary);
       }
+
       .cal-exp {
         color: var(--danger);
       }
@@ -444,11 +486,13 @@
         background: var(--cal-bg-today);
         color: var(--cal-text-today);
       }
+
       .cal-day.is-today .cal-inc,
       .cal-day.is-today .cal-exp {
         color: var(--cal-text-today);
         opacity: 0.9;
       }
+
       .cal-day.not-current {
         opacity: 0.4;
         box-shadow: none;
@@ -463,16 +507,19 @@
         margin: 0 16px 24px 16px;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
       }
+
       .ov-row {
         display: flex;
         justify-content: space-between;
         margin-top: 16px;
       }
+
       .ov-item h4 {
         font-size: 12px;
         opacity: 0.8;
         font-weight: 400;
       }
+
       .ov-item span {
         font-size: 18px;
         font-weight: 600;
@@ -485,36 +532,43 @@
         display: flex;
         flex-direction: column;
       }
+
       .type-switch {
         display: flex;
         justify-content: center;
         padding: 10px 0;
       }
+
       .ts-btn {
         padding: 8px 24px;
         font-weight: 600;
         color: var(--text-sub);
         border-radius: 20px;
       }
+
       .ts-btn.active {
         background: var(--bg-app);
         color: var(--text-main);
       }
+
       .input-area {
         padding: 20px 24px;
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
+
       .input-label {
         font-size: 14px;
         color: var(--text-sub);
       }
+
       .amount-display {
         font-size: 48px;
         font-weight: 700;
         color: var(--text-main);
       }
+
       .category-grid {
         flex: 1;
         display: grid;
@@ -524,6 +578,7 @@
         align-content: start;
         overflow-y: auto;
       }
+
       .cat-item {
         display: flex;
         flex-direction: column;
@@ -531,6 +586,7 @@
         gap: 6px;
         cursor: pointer;
       }
+
       .cat-icon {
         width: 48px;
         height: 48px;
@@ -543,15 +599,18 @@
         font-size: 20px;
         transition: all 0.2s;
       }
+
       .cat-item.selected .cat-icon {
         background: var(--cat-selected-bg);
         border: 2px solid var(--primary);
         color: var(--text-main);
       }
+
       .cat-name {
         font-size: 10px;
         color: var(--text-sub);
       }
+
       .num-pad {
         background: var(--bg-app);
         padding-bottom: 30px;
@@ -559,14 +618,17 @@
         grid-template-columns: 3fr 1fr;
         border-top: 1px solid var(--border);
       }
+
       .num-keys {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
       }
+
       .action-keys {
         display: flex;
         flex-direction: column;
       }
+
       .key {
         height: 60px;
         display: flex;
@@ -580,9 +642,11 @@
         color: var(--text-main);
         cursor: pointer;
       }
+
       .key:active {
         background: var(--key-bg-active);
       }
+
       .key-done {
         flex: 1;
         background: var(--primary);
@@ -605,11 +669,13 @@
         border-radius: 16px;
         box-shadow: var(--shadow);
       }
+
       .asset-left {
         display: flex;
         align-items: center;
         gap: 12px;
       }
+
       .asset-icon {
         width: 32px;
         height: 32px;
@@ -621,15 +687,19 @@
         font-size: 14px;
         font-weight: bold;
       }
+
       .bg-wx {
         background: #22c55e;
       }
+
       .bg-ali {
         background: #3b82f6;
       }
+
       .bg-bank {
         background: #ef4444;
       }
+
       .bg-cash {
         background: #f59e0b;
       }
@@ -642,11 +712,13 @@
         align-items: center;
         padding: 40px 16px 30px;
       }
+
       .pm-avatar {
         width: 96px;
         height: 96px;
         border-radius: 48px;
-        background: var(--primary); /* Use primary color */
+        background: var(--primary);
+        /* Use primary color */
         color: var(--text-on-primary);
         display: flex;
         align-items: center;
@@ -656,12 +728,14 @@
         margin-bottom: 16px;
         box-shadow: var(--shadow-lg);
       }
+
       .pm-name {
         font-size: 24px;
         font-weight: 700;
         color: var(--text-main);
         margin-bottom: 4px;
       }
+
       .pm-info {
         font-size: 13px;
         color: var(--text-sub);
@@ -675,12 +749,14 @@
         overflow: hidden;
         box-shadow: var(--shadow);
       }
+
       .setting-group-title {
         padding: 16px 16px 8px;
         font-size: 12px;
         font-weight: 600;
         color: var(--text-sub);
       }
+
       .setting-item {
         padding: 16px;
         display: flex;
@@ -691,6 +767,7 @@
         color: var(--text-main);
         cursor: pointer;
       }
+
       .setting-item:last-child {
         border-bottom: none;
       }
@@ -700,6 +777,7 @@
         display: flex;
         gap: 12px;
       }
+
       .color-circle {
         width: 26px;
         height: 26px;
@@ -711,6 +789,7 @@
           transform 0.2s,
           border-color 0.2s;
       }
+
       .color-circle.active {
         border-color: var(--text-main);
         transform: scale(1.1);
@@ -726,16 +805,19 @@
         stroke-linecap: round;
         stroke-linejoin: round;
       }
+
       .icon-sm {
         width: 16px;
         height: 16px;
         stroke-width: 2.5;
       }
+
       .icon-xs {
         width: 14px;
         height: 14px;
         stroke-width: 2;
       }
+
       .screen-label {
         position: absolute;
         top: -40px;
@@ -744,11 +826,13 @@
         font-weight: 600;
         letter-spacing: 0.5px;
       }
+
       .sep-h {
         height: 1px;
         background: var(--border);
         margin: 0 24px;
       }
+
       .toolbar-section {
         padding: 8px 16px;
         background: var(--bg-app);
@@ -756,13 +840,17 @@
         gap: 12px;
         border-bottom: 1px solid var(--border);
       }
+
       /* --- 新增：日历交互与明细卡片样式 --- */
 
       /* 选中日期的样式 */
       .cal-day.selected {
-        border: 2px solid var(--text-main); /* 选中时显示深色边框 */
-        background: var(--bg-card); /* 保持背景 */
-        transform: scale(0.95); /* 轻微缩小产生按压感 */
+        border: 2px solid var(--text-main);
+        /* 选中时显示深色边框 */
+        background: var(--bg-card);
+        /* 保持背景 */
+        transform: scale(0.95);
+        /* 轻微缩小产生按压感 */
         z-index: 2;
       }
 
@@ -776,7 +864,8 @@
       .day-detail-container {
         margin: 0 16px 24px 16px;
         overflow: hidden;
-        display: none; /* 默认隐藏，点击后显示 */
+        display: none;
+        /* 默认隐藏，点击后显示 */
         animation: slideDown 0.3s ease-out;
       }
 
@@ -801,8 +890,10 @@
         border-bottom-left-radius: 16px;
         border-bottom-right-radius: 16px;
       }
+
       .day-list-wrapper .transaction-item {
-        border-radius: 0; /* 重置默认圆角 */
+        border-radius: 0;
+        /* 重置默认圆角 */
       }
 
       @keyframes slideDown {
@@ -810,13 +901,215 @@
           opacity: 0;
           transform: translateY(-10px);
         }
+
         to {
           opacity: 1;
           transform: translateY(0);
         }
       }
+
+      /* --- Stats Screen Specific Styles --- */
+      .stats-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px 16px;
+      }
+
+      /* Segmented Control for Time (Week/Month/Year) */
+      .segment-control {
+        background: var(--pill-bg);
+        border-radius: 8px;
+        padding: 2px;
+        display: flex;
+        gap: 2px;
+      }
+
+      .segment-btn {
+        padding: 4px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+        color: var(--text-sub);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .segment-btn.active {
+        background: var(--bg-card);
+        color: var(--text-main);
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Total Amount Display */
+      .stats-total-card {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .stats-label {
+        font-size: 12px;
+        color: var(--text-sub);
+        margin-bottom: 4px;
+      }
+
+      .stats-amount {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .stats-trend-tag {
+        font-size: 12px;
+        color: var(--text-sub);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .trend-up {
+        color: var(--danger);
+      }
+
+      .trend-down {
+        color: var(--primary);
+      }
+
+      /* SVG Line Chart Container */
+      .chart-container {
+        height: 180px;
+        width: 100%;
+        position: relative;
+        margin-bottom: 32px;
+      }
+
+      .chart-svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .chart-line {
+        fill: none;
+        stroke: var(--primary);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: stroke 0.3s;
+      }
+
+      .chart-area {
+        fill: url(#gradientPrimary);
+        opacity: 1; /* 改为 1，让透明度由渐变本身控制 */
+        transition:
+          fill 0.3s,
+          opacity 0.3s;
+      }
+
+      .chart-tooltip {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        background: var(--bg-main);
+        color: var(--text-main);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: var(--shadow);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      /* Donut Chart Section */
+      .donut-section {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 0 16px 24px;
+      }
+
+      .donut-chart {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(
+          var(--primary) 0% 35%,
+          var(--accent-orange) 35% 60%,
+          var(--accent-blue) 60% 80%,
+          var(--bg-app) 80% 100%
+        );
+        position: relative;
+        flex-shrink: 0;
+      }
+
+      .donut-inner {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 80px;
+        height: 80px;
+        background: var(--bg-app);
+        /* Match app background to create hole */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: var(--text-sub);
+        flex-direction: column;
+      }
+
+      /* Dark mode fix for donut hole */
+      [data-theme="dark"] .donut-inner {
+        background: #000;
+        /* Match body bg in dark mode usually */
+      }
+
+      /* Or better, make it match the parent container if not transparent */
+      .card .donut-inner {
+        background: var(--bg-card);
+      }
+
+      .legend-grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-sub);
+      }
+
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 4px;
+      }
+
+      /* Override color for Income Mode */
+      [data-mode="income"] {
+        --primary: var(--accent-orange);
+        /* Orange for income usually looks good or stick to green */
+      }
+
+      /* Revert standard colors logic within stats specifically if needed */
+      .mode-expense .chart-line {
+        stroke: var(--text-main);
+      }
+
+      /* We will control colors via JS logic updating CSS vars or classes */
     </style>
   </head>
+
   <body>
     <!-- TOOLBAR -->
     <div class="toolbar">
@@ -865,10 +1158,7 @@
                   align-items: center;
                 "
               >
-                <div
-                  class="date-selector"
-                  onclick="openMonthPicker()"
-                >
+                <div class="date-selector" onclick="openMonthPicker()">
                   <span class="h2">2025年 11月</span>
                   <svg class="icon icon-sm" viewBox="0 0 24 24">
                     <path d="m6 9 6 6 6-6" />
@@ -1450,81 +1740,242 @@
         </div>
       </div>
 
-      <!-- SCREEN 4: STATS (Unchanged) -->
+      <!-- SCREEN 4: STATS (Redesigned) -->
       <div style="position: relative">
-        <div class="screen-label">04. 统计 (Stats)</div>
+        <div class="screen-label">04. 统计 (Stats) - 多图表版</div>
         <div class="device-mockup">
           <div class="notch"></div>
-          <div class="screen-content">
+          <div class="screen-content" id="stats-screen">
+            <!-- Header: Period & Type Switcher -->
             <div class="dashboard-header" style="padding-bottom: 0">
-              <div
-                class="type-switch"
-                style="justify-content: flex-start; gap: 10px"
-              >
-                <div class="h1">11月报表</div>
+              <div class="stats-header-row" style="padding: 0 0 16px 0">
+                <div class="segment-control">
+                  <div
+                    class="segment-btn"
+                    onclick="switchStatsPeriod(this, 'week')"
+                  >
+                    周
+                  </div>
+                  <div
+                    class="segment-btn active"
+                    onclick="switchStatsPeriod(this, 'month')"
+                  >
+                    月
+                  </div>
+                  <div
+                    class="segment-btn"
+                    onclick="switchStatsPeriod(this, 'year')"
+                  >
+                    年
+                  </div>
+                </div>
+
+                <div class="type-switch" style="padding: 0; margin: 0">
+                  <!-- JS will toggle 'active' class -->
+                  <div
+                    class="ts-btn active"
+                    id="btn-stats-exp"
+                    onclick="toggleStatsType('expense')"
+                    style="padding: 4px 12px; font-size: 12px"
+                  >
+                    支出
+                  </div>
+                  <div
+                    class="ts-btn"
+                    id="btn-stats-inc"
+                    onclick="toggleStatsType('income')"
+                    style="padding: 4px 12px; font-size: 12px"
+                  >
+                    收入
+                  </div>
+                </div>
               </div>
             </div>
-            <div
-              class="card"
-              style="
-                height: 200px;
-                display: flex;
-                align-items: flex-end;
-                justify-content: space-around;
-                padding-bottom: 20px;
-                margin-top: 20px;
-              "
-            >
-              <div
-                style="
-                  width: 30px;
-                  height: 40%;
-                  background: var(--chart-bar-bg);
-                  border-radius: 4px 4px 0 0;
-                "
-              ></div>
-              <div
-                style="
-                  width: 30px;
-                  height: 60%;
-                  background: var(--chart-bar-bg);
-                  border-radius: 4px 4px 0 0;
-                "
-              ></div>
-              <div
-                style="
-                  width: 30px;
-                  height: 30%;
-                  background: var(--chart-bar-bg);
-                  border-radius: 4px 4px 0 0;
-                "
-              ></div>
-              <div
-                style="
-                  width: 30px;
-                  height: 80%;
-                  background: var(--primary);
-                  border-radius: 4px 4px 0 0;
-                  position: relative;
-                "
-              ></div>
-              <div
-                style="
-                  width: 30px;
-                  height: 50%;
-                  background: var(--chart-bar-bg);
-                  border-radius: 4px 4px 0 0;
-                "
-              ></div>
-              <div
-                style="
-                  width: 30px;
-                  height: 45%;
-                  background: var(--chart-bar-bg);
-                  border-radius: 4px 4px 0 0;
-                "
-              ></div>
+
+            <!-- Total Summary -->
+            <div class="stats-total-card">
+              <div class="stats-label">11月 总支出</div>
+              <div class="stats-amount" id="stats-total-amount">¥ 5,823.40</div>
+              <div class="stats-trend-tag">
+                <span class="trend-up">▲ 12%</span>
+                <span>对比上月</span>
+              </div>
             </div>
+
+            <!-- Chart 1: Trend (Line/Area) -->
+            <div class="card" style="padding: 20px 0 0 0; overflow: hidden">
+              <div
+                style="
+                  padding: 0 20px;
+                  font-weight: 600;
+                  font-size: 14px;
+                  margin-bottom: 10px;
+                "
+              >
+                每日趋势
+              </div>
+              <div class="chart-container">
+                <svg
+                  class="chart-svg"
+                  viewBox="0 0 300 100"
+                  preserveAspectRatio="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <!-- 支出渐变 (Green/Primary) -->
+                    <linearGradient
+                      id="gradientPrimary"
+                      x1="0"
+                      x2="0"
+                      y1="0"
+                      y2="1"
+                    >
+                      <!-- 使用 style 写法兼容 CSS 变量 -->
+                      <stop
+                        offset="0%"
+                        style="stop-color: var(--primary); stop-opacity: 0.4"
+                      />
+                      <stop
+                        offset="100%"
+                        style="stop-color: var(--primary); stop-opacity: 0"
+                      />
+                    </linearGradient>
+
+                    <!-- 收入渐变 (Orange) - 确保此 ID 存在，JS 切换时会用到 -->
+                    <linearGradient
+                      id="gradientOrange"
+                      x1="0"
+                      x2="0"
+                      y1="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        style="
+                          stop-color: var(--accent-orange);
+                          stop-opacity: 0.4;
+                        "
+                      />
+                      <stop
+                        offset="100%"
+                        style="
+                          stop-color: var(--accent-orange);
+                          stop-opacity: 0;
+                        "
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <!-- 区域填充层 -->
+                  <path
+                    id="trend-area"
+                    class="chart-area"
+                    d="M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40 V100 H0 Z"
+                    style="fill: url(#gradientPrimary); opacity: 0.2;"
+                  />
+
+                  <!-- 线条层 -->
+                  <path
+                    id="trend-line"
+                    class="chart-line"
+                    d="M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40"
+                    style="stroke: var(--primary); stroke-width: 2; fill: none;"
+                  />
+                </svg>
+
+                <!-- X轴坐标 - 修改为可动态更新 -->
+                <div
+                  class="x-axis"
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0 16px;
+                    margin-top: -20px;
+                    position: relative;
+                    font-size: 10px;
+                    color: var(--text-sub);
+                  "
+                >
+                  <span>1日</span>
+                  <span>7日</span>
+                  <span>14日</span>
+                  <span>21日</span>
+                  <span>28日</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart 2: Structure (Donut) -->
+            <div class="card">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 16px;
+                "
+              >
+                <span style="font-weight: 600; font-size: 14px">分类构成</span>
+                <span class="text-sm" style="color: var(--primary)"
+                  >查看全部 ></span
+                >
+              </div>
+
+              <div class="donut-section">
+                <div class="donut-chart" id="category-donut">
+                  <div class="donut-inner">
+                    <span
+                      style="
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: var(--text-main);
+                      "
+                      >Top 5</span
+                    >
+                    <span>类别</span>
+                  </div>
+                </div>
+                <div class="legend-grid">
+                  <div class="legend-item">
+                    <div
+                      class="legend-dot"
+                      style="background: var(--text-main)"
+                    ></div>
+                    <span>房租 35%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-dot"
+                      style="background: var(--primary)"
+                    ></div>
+                    <span>餐饮 20%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-dot"
+                      style="background: var(--accent-orange)"
+                    ></div>
+                    <span>购物 15%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-dot"
+                      style="background: var(--accent-blue)"
+                    ></div>
+                    <span>交通 10%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-dot"
+                      style="background: var(--border)"
+                    ></div>
+                    <span>其他 20%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- List: Ranking (Maps to Transactions grouped by Tag) -->
             <div
               style="
                 padding: 0 20px;
@@ -1534,106 +1985,149 @@
                 color: var(--text-sub);
               "
             >
-              支出排行榜
+              支出排行榜 (Top Spending)
             </div>
-            <div
-              class="transaction-item"
-              style="
-                margin: 0 16px 1px 16px;
-                border-radius: 0;
-                border-bottom: 1px solid var(--border);
-              "
-            >
-              <div class="t-icon">🏠</div>
-              <div class="t-info">
-                <div style="display: flex; justify-content: space-between">
-                  <span>房租房贷</span><span>35%</span>
-                </div>
-                <div
-                  style="
-                    width: 100%;
-                    height: 4px;
-                    background: var(--bg-app);
-                    margin-top: 6px;
-                    border-radius: 2px;
-                  "
-                >
+
+            <div id="stats-ranking-list">
+              <!-- Item 1 -->
+              <div
+                class="transaction-item"
+                style="
+                  margin: 0 16px 1px 16px;
+                  border-radius: 12px 12px 0 0;
+                  border-bottom: 1px solid var(--border);
+                "
+              >
+                <div class="t-icon">🏠</div>
+                <div class="t-info">
                   <div
                     style="
-                      width: 35%;
-                      height: 100%;
-                      background: var(--text-main);
-                      border-radius: 2px;
+                      display: flex;
+                      justify-content: space-between;
+                      margin-bottom: 6px;
                     "
-                  ></div>
-                </div>
-              </div>
-              <div class="t-amount" style="margin-left: 12px">3500</div>
-            </div>
-            <div
-              class="transaction-item"
-              style="
-                margin: 0 16px 1px 16px;
-                border-radius: 0;
-                border-bottom: 1px solid var(--border);
-              "
-            >
-              <div class="t-icon">🍜</div>
-              <div class="t-info">
-                <div style="display: flex; justify-content: space-between">
-                  <span>餐饮美食</span><span>20%</span>
-                </div>
-                <div
-                  style="
-                    width: 100%;
-                    height: 4px;
-                    background: var(--bg-app);
-                    margin-top: 6px;
-                    border-radius: 2px;
-                  "
-                >
+                  >
+                    <span style="font-weight: 500">房租房贷</span>
+                    <span style="font-weight: 600">35%</span>
+                  </div>
                   <div
                     style="
-                      width: 20%;
-                      height: 100%;
-                      background: var(--primary);
-                      border-radius: 2px;
+                      width: 100%;
+                      height: 6px;
+                      background: var(--bg-app);
+                      border-radius: 3px;
                     "
-                  ></div>
-                </div>
-              </div>
-              <div class="t-amount" style="margin-left: 12px">2000</div>
-            </div>
-            <div
-              class="transaction-item"
-              style="margin: 0 16px 1px 16px; border-radius: 0"
-            >
-              <div class="t-icon">🛒</div>
-              <div class="t-info">
-                <div style="display: flex; justify-content: space-between">
-                  <span>购物消费</span><span>15%</span>
+                  >
+                    <div
+                      style="
+                        width: 35%;
+                        height: 100%;
+                        background: var(--text-main);
+                        border-radius: 3px;
+                      "
+                    ></div>
+                  </div>
                 </div>
                 <div
-                  style="
-                    width: 100%;
-                    height: 4px;
-                    background: var(--bg-app);
-                    margin-top: 6px;
-                    border-radius: 2px;
-                  "
+                  class="t-amount"
+                  style="margin-left: 12px; font-size: 15px"
                 >
-                  <div
-                    style="
-                      width: 15%;
-                      height: 100%;
-                      background: #f59e0b;
-                      border-radius: 2px;
-                    "
-                  ></div>
+                  3,500
                 </div>
               </div>
-              <div class="t-amount" style="margin-left: 12px">1500</div>
+
+              <!-- Item 2 -->
+              <div
+                class="transaction-item"
+                style="
+                  margin: 0 16px 1px 16px;
+                  border-radius: 0;
+                  border-bottom: 1px solid var(--border);
+                "
+              >
+                <div class="t-icon">🍜</div>
+                <div class="t-info">
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      margin-bottom: 6px;
+                    "
+                  >
+                    <span style="font-weight: 500">餐饮美食</span>
+                    <span style="font-weight: 600">20%</span>
+                  </div>
+                  <div
+                    style="
+                      width: 100%;
+                      height: 6px;
+                      background: var(--bg-app);
+                      border-radius: 3px;
+                    "
+                  >
+                    <div
+                      style="
+                        width: 20%;
+                        height: 100%;
+                        background: var(--primary);
+                        border-radius: 3px;
+                      "
+                    ></div>
+                  </div>
+                </div>
+                <div
+                  class="t-amount"
+                  style="margin-left: 12px; font-size: 15px"
+                >
+                  2,000
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div
+                class="transaction-item"
+                style="margin: 0 16px 1px 16px; border-radius: 0 0 12px 12px"
+              >
+                <div class="t-icon">🛒</div>
+                <div class="t-info">
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      margin-bottom: 6px;
+                    "
+                  >
+                    <span style="font-weight: 500">购物消费</span>
+                    <span style="font-weight: 600">15%</span>
+                  </div>
+                  <div
+                    style="
+                      width: 100%;
+                      height: 6px;
+                      background: var(--bg-app);
+                      border-radius: 3px;
+                    "
+                  >
+                    <div
+                      style="
+                        width: 15%;
+                        height: 100%;
+                        background: var(--accent-orange);
+                        border-radius: 3px;
+                      "
+                    ></div>
+                  </div>
+                </div>
+                <div
+                  class="t-amount"
+                  style="margin-left: 12px; font-size: 15px"
+                >
+                  1,500
+                </div>
+              </div>
             </div>
+
+            <div style="height: 20px"></div>
           </div>
           <div class="tab-bar">
             <div class="tab-item">
@@ -1888,95 +2382,142 @@
 
       // ... (之前的代码)
 
-        // 5. NEW: Calendar Day Click Interaction
-        const dayDetailWrapper = document.getElementById('day-detail-wrapper');
-        const calGrid = document.getElementById('calendar-grid');
-        const calDays = calGrid.querySelectorAll('.cal-day:not(.not-current)');
+      // 5. NEW: Calendar Day Click Interaction
+      const dayDetailWrapper = document.getElementById("day-detail-wrapper");
+      const calGrid = document.getElementById("calendar-grid");
+      const calDays = calGrid.querySelectorAll(".cal-day:not(.not-current)");
 
-        // 模拟数据源：日期 -> 交易列表
-        const mockTransactions = {
-            '12': [
-                { icon: '🛒', name: '超市采购', pay: '微信', amount: '- 120.00', type: 'exp' }
-            ],
-            '13': [
-                { icon: '💰', name: '退款到账', pay: '支付宝', amount: '+ 500.00', type: 'inc' }
-            ],
-            '20': [ // Today
-                { icon: '🍜', name: '午餐', pay: '微信零钱', amount: '- 58.00', type: 'exp' },
-                { icon: '☕', name: '咖啡', pay: '星巴克卡', amount: '- 34.40', type: 'exp' }
-            ],
-            '22': [
-                { icon: '💵', name: '奖金发放', pay: '招商银行', amount: '+ 800.00', type: 'inc' }
-            ],
-            '18': [
-                 { icon: '🛒', name: '便利店', pay: '现金', amount: '- 28.90', type: 'exp' },
-                 { icon: '🎮', name: 'Steam游戏', pay: '信用卡', amount: '- 150.00', type: 'exp' }
-            ]
-        };
+      // 模拟数据源：日期 -> 交易列表
+      const mockTransactions = {
+        12: [
+          {
+            icon: "🛒",
+            name: "超市采购",
+            pay: "微信",
+            amount: "- 120.00",
+            type: "exp",
+          },
+        ],
+        13: [
+          {
+            icon: "💰",
+            name: "退款到账",
+            pay: "支付宝",
+            amount: "+ 500.00",
+            type: "inc",
+          },
+        ],
+        20: [
+          // Today
+          {
+            icon: "🍜",
+            name: "午餐",
+            pay: "微信零钱",
+            amount: "- 58.00",
+            type: "exp",
+          },
+          {
+            icon: "☕",
+            name: "咖啡",
+            pay: "星巴克卡",
+            amount: "- 34.40",
+            type: "exp",
+          },
+        ],
+        22: [
+          {
+            icon: "💵",
+            name: "奖金发放",
+            pay: "招商银行",
+            amount: "+ 800.00",
+            type: "inc",
+          },
+        ],
+        18: [
+          {
+            icon: "🛒",
+            name: "便利店",
+            pay: "现金",
+            amount: "- 28.90",
+            type: "exp",
+          },
+          {
+            icon: "🎮",
+            name: "Steam游戏",
+            pay: "信用卡",
+            amount: "- 150.00",
+            type: "exp",
+          },
+        ],
+      };
 
-        calDays.forEach(day => {
-            day.addEventListener('click', function() {
-                // 1. 移除其他日期的选中状态
-                calDays.forEach(d => d.classList.remove('selected'));
-                
-                // 2. 选中当前日期
-                this.classList.add('selected');
+      calDays.forEach((day) => {
+        day.addEventListener("click", function () {
+          // 1. 移除其他日期的选中状态
+          calDays.forEach((d) => d.classList.remove("selected"));
 
-                // 3. 获取日期数据
-                const dateNum = this.getAttribute('data-day');
-                const data = mockTransactions[dateNum];
+          // 2. 选中当前日期
+          this.classList.add("selected");
 
-                // 4. 生成并渲染明细卡片
-                renderDayDetails(dateNum, data);
-            });
+          // 3. 获取日期数据
+          const dateNum = this.getAttribute("data-day");
+          const data = mockTransactions[dateNum];
+
+          // 4. 生成并渲染明细卡片
+          renderDayDetails(dateNum, data);
         });
+      });
 
-        function renderDayDetails(date, list) {
-            // 如果没有数据，可以选择隐藏容器或者显示无数据提示
-            if (!list || list.length === 0) {
-                // 简单处理：如果没有数据，显示一个空的提示或者隐藏
-                dayDetailWrapper.innerHTML = `
+      function renderDayDetails(date, list) {
+        // 如果没有数据，可以选择隐藏容器或者显示无数据提示
+        if (!list || list.length === 0) {
+          // 简单处理：如果没有数据，显示一个空的提示或者隐藏
+          dayDetailWrapper.innerHTML = `
                     <div class="card" style="text-align:center; padding:24px; color:var(--text-sub);">
                         <div style="font-size:12px;">11月${date}日 · 无记账记录</div>
                     </div>
                 `;
-                dayDetailWrapper.classList.add('show');
-                return;
-            }
+          dayDetailWrapper.classList.add("show");
+          return;
+        }
 
-            // 计算当日统计
-            let totalExp = 0;
-            let totalInc = 0;
-            list.forEach(item => {
-                const val = parseFloat(item.amount.replace(/[^0-9.]/g, ''));
-                if (item.type === 'exp') totalExp += val;
-                else totalInc += val;
-            });
+        // 计算当日统计
+        let totalExp = 0;
+        let totalInc = 0;
+        list.forEach((item) => {
+          const val = parseFloat(item.amount.replace(/[^0-9.]/g, ""));
+          if (item.type === "exp") totalExp += val;
+          else totalInc += val;
+        });
 
-            // 生成列表 HTML
-            const listHtml = list.map(item => `
+        // 生成列表 HTML
+        const listHtml = list
+          .map(
+            (item) => `
                 <div class="transaction-item">
                     <div class="t-icon">${item.icon}</div>
                     <div class="t-info">
                         <div style="font-weight:500;">${item.name}</div>
                         <div style="margin-top:4px;"><span class="pill">${item.pay}</span></div>
                     </div>
-                    <div class="t-amount ${item.type === 'inc' ? 'money-inc' : ''}">${item.amount}</div>
+                    <div class="t-amount ${item.type === "inc" ? "money-inc" : ""}">${item.amount}</div>
                 </div>
-            `).join('');
+            `
+          )
+          .join("");
 
-            // 组装完整卡片
-            const headerHtml = `
+        // 组装完整卡片
+        const headerHtml = `
                 <div class="day-card-header">
                     <div style="font-weight:600; color:var(--text-main);">11月${date}日</div>
                     <div style="font-size:12px; color:var(--text-sub);">
-                        ${totalInc > 0 ? `<span class="money-inc">收 +${totalInc.toFixed(2)}</span> &nbsp;` : ''}
-                        ${totalExp > 0 ? `<span>支 -${totalExp.toFixed(2)}</span>` : ''}
+                        ${totalInc > 0 ? `<span class="money-inc">收 +${totalInc.toFixed(2)}</span> &nbsp;` : ""}
+                        ${totalExp > 0 ? `<span>支 -${totalExp.toFixed(2)}</span>` : ""}
                     </div>
                 </div>
             `;
 
-            dayDetailWrapper.innerHTML = `
+        dayDetailWrapper.innerHTML = `
                 <div style="box-shadow:var(--shadow); border-radius:16px;">
                     ${headerHtml}
                     <div class="day-list-wrapper" style="background:var(--bg-card);">
@@ -1984,17 +2525,17 @@
                     </div>
                 </div>
             `;
-            
-            dayDetailWrapper.classList.add('show');
-        }
 
-        console.log("Mono App: Calendar Interaction Loaded.");
+        dayDetailWrapper.classList.add("show");
+      }
+
+      console.log("Mono App: Calendar Interaction Loaded.");
 
       // 6. NEW: Month Picker Functionality
       // 创建月份选择器模态框
       function createMonthPickerModal() {
-        const modal = document.createElement('div');
-        modal.id = 'month-picker-modal';
+        const modal = document.createElement("div");
+        modal.id = "month-picker-modal";
         modal.style.cssText = `
           position: fixed;
           top: 0;
@@ -2011,7 +2552,7 @@
           transition: opacity 0.3s, visibility 0.3s;
         `;
 
-        const content = document.createElement('div');
+        const content = document.createElement("div");
         content.style.cssText = `
           background-color: var(--bg-modal);
           width: 100%;
@@ -2024,7 +2565,7 @@
         `;
 
         // 模态框头部
-        const header = document.createElement('div');
+        const header = document.createElement("div");
         header.style.cssText = `
           display: flex;
           justify-content: space-between;
@@ -2032,8 +2573,8 @@
           margin-bottom: 24px;
         `;
 
-        const cancelBtn = document.createElement('button');
-        cancelBtn.textContent = '取消';
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "取消";
         cancelBtn.style.cssText = `
           background: none;
           border: none;
@@ -2041,10 +2582,10 @@
           font-size: 16px;
           padding: 8px 16px;
         `;
-        cancelBtn.addEventListener('click', closeMonthPicker);
+        cancelBtn.addEventListener("click", closeMonthPicker);
 
-        const title = document.createElement('h3');
-        title.textContent = '选择月份';
+        const title = document.createElement("h3");
+        title.textContent = "选择月份";
         title.style.cssText = `
           margin: 0;
           font-size: 18px;
@@ -2052,8 +2593,8 @@
           color: var(--text-main);
         `;
 
-        const confirmBtn = document.createElement('button');
-        confirmBtn.textContent = '确定';
+        const confirmBtn = document.createElement("button");
+        confirmBtn.textContent = "确定";
         confirmBtn.style.cssText = `
           background: none;
           border: none;
@@ -2062,7 +2603,7 @@
           font-weight: 600;
           padding: 8px 16px;
         `;
-        confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener("click", () => {
           if (selectedMonth && selectedYear) {
             updateSelectedMonth(selectedYear, selectedMonth);
             closeMonthPicker();
@@ -2074,7 +2615,7 @@
         header.appendChild(confirmBtn);
 
         // 年份选择器
-        const yearSelector = document.createElement('div');
+        const yearSelector = document.createElement("div");
         yearSelector.style.cssText = `
           display: flex;
           justify-content: space-between;
@@ -2082,8 +2623,9 @@
           margin-bottom: 24px;
         `;
 
-        const prevYearBtn = document.createElement('button');
-        prevYearBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
+        const prevYearBtn = document.createElement("button");
+        prevYearBtn.innerHTML =
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
         prevYearBtn.style.cssText = `
           background: none;
           border: none;
@@ -2091,17 +2633,18 @@
           padding: 8px;
         `;
 
-        const yearDisplay = document.createElement('span');
-        yearDisplay.id = 'year-display';
-        yearDisplay.textContent = '2025年';
+        const yearDisplay = document.createElement("span");
+        yearDisplay.id = "year-display";
+        yearDisplay.textContent = "2025年";
         yearDisplay.style.cssText = `
           font-size: 18px;
           font-weight: 600;
           color: var(--text-main);
         `;
 
-        const nextYearBtn = document.createElement('button');
-        nextYearBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+        const nextYearBtn = document.createElement("button");
+        nextYearBtn.innerHTML =
+          '<svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
         nextYearBtn.style.cssText = `
           background: none;
           border: none;
@@ -2114,17 +2657,30 @@
         yearSelector.appendChild(nextYearBtn);
 
         // 月份网格
-        const monthGrid = document.createElement('div');
-        monthGrid.id = 'month-grid';
+        const monthGrid = document.createElement("div");
+        monthGrid.id = "month-grid";
         monthGrid.style.cssText = `
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 12px;
         `;
 
-        const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        const months = [
+          "1月",
+          "2月",
+          "3月",
+          "4月",
+          "5月",
+          "6月",
+          "7月",
+          "8月",
+          "9月",
+          "10月",
+          "11月",
+          "12月",
+        ];
         months.forEach((month, index) => {
-          const monthBtn = document.createElement('button');
+          const monthBtn = document.createElement("button");
           monthBtn.textContent = month;
           monthBtn.dataset.month = (index + 1).toString();
           monthBtn.style.cssText = `
@@ -2136,31 +2692,31 @@
             color: var(--text-main);
             transition: all 0.2s;
           `;
-          
+
           // 默认选中11月
           if (index === 10) {
-            monthBtn.style.backgroundColor = 'var(--primary)';
-            monthBtn.style.color = 'var(--text-on-primary)';
-            monthBtn.style.borderColor = 'var(--primary)';
+            monthBtn.style.backgroundColor = "var(--primary)";
+            monthBtn.style.color = "var(--text-on-primary)";
+            monthBtn.style.borderColor = "var(--primary)";
           }
-          
-          monthBtn.addEventListener('click', function() {
+
+          monthBtn.addEventListener("click", function () {
             // 移除其他月份的选中状态
-            monthGrid.querySelectorAll('button').forEach(btn => {
-              btn.style.backgroundColor = 'var(--bg-card)';
-              btn.style.color = 'var(--text-main)';
-              btn.style.borderColor = 'var(--border)';
+            monthGrid.querySelectorAll("button").forEach((btn) => {
+              btn.style.backgroundColor = "var(--bg-card)";
+              btn.style.color = "var(--text-main)";
+              btn.style.borderColor = "var(--border)";
             });
-            
+
             // 选中当前月份
-            this.style.backgroundColor = 'var(--primary)';
-            this.style.color = 'var(--text-on-primary)';
-            this.style.borderColor = 'var(--primary)';
-            
+            this.style.backgroundColor = "var(--primary)";
+            this.style.color = "var(--text-on-primary)";
+            this.style.borderColor = "var(--primary)";
+
             // 更新选中的月份
             selectedMonth = parseInt(this.dataset.month);
           });
-          
+
           monthGrid.appendChild(monthBtn);
         });
 
@@ -2174,21 +2730,21 @@
         let currentDisplayYear = 2025;
         selectedYear = 2025;
         selectedMonth = 11;
-        
-        prevYearBtn.addEventListener('click', () => {
+
+        prevYearBtn.addEventListener("click", () => {
           currentDisplayYear--;
-          yearDisplay.textContent = currentDisplayYear + '年';
+          yearDisplay.textContent = currentDisplayYear + "年";
           selectedYear = currentDisplayYear;
         });
-        
-        nextYearBtn.addEventListener('click', () => {
+
+        nextYearBtn.addEventListener("click", () => {
           currentDisplayYear++;
-          yearDisplay.textContent = currentDisplayYear + '年';
+          yearDisplay.textContent = currentDisplayYear + "年";
           selectedYear = currentDisplayYear;
         });
-        
+
         // 点击模态框外部关闭
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener("click", function (e) {
           if (e.target === this) {
             closeMonthPicker();
           }
@@ -2196,47 +2752,257 @@
       }
 
       let selectedYear, selectedMonth;
-      
+
       // 打开月份选择器
       function openMonthPicker() {
         // 如果模态框不存在，创建它
-        if (!document.getElementById('month-picker-modal')) {
+        if (!document.getElementById("month-picker-modal")) {
           createMonthPickerModal();
         }
-        
-        const modal = document.getElementById('month-picker-modal');
-        const content = modal.querySelector('div');
-        
+
+        const modal = document.getElementById("month-picker-modal");
+        const content = modal.querySelector("div");
+
         // 显示模态框
-        modal.style.opacity = '1';
-        modal.style.visibility = 'visible';
-        content.style.transform = 'translateY(0)';
+        modal.style.opacity = "1";
+        modal.style.visibility = "visible";
+        content.style.transform = "translateY(0)";
       }
 
       // 关闭月份选择器
       function closeMonthPicker() {
-        const modal = document.getElementById('month-picker-modal');
-        const content = modal.querySelector('div');
-        
+        const modal = document.getElementById("month-picker-modal");
+        const content = modal.querySelector("div");
+
         // 隐藏模态框
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        content.style.transform = 'translateY(100%)';
+        modal.style.opacity = "0";
+        modal.style.visibility = "hidden";
+        content.style.transform = "translateY(100%)";
       }
 
       // 更新选中的月份
       function updateSelectedMonth(year, month) {
         // 更新日期选择器显示的月份
-        const dateSelectorText = document.querySelector('.date-selector .h2');
+        const dateSelectorText = document.querySelector(".date-selector .h2");
         dateSelectorText.textContent = `${year}年 ${month}月`;
-        
+
         // 这里可以添加更新日历内容的逻辑
         console.log(`已选择月份: ${year}年${month}月`);
-        
+
         // TODO: 根据选择的月份更新日历网格内容
       }
 
       console.log("Mono App: Month Picker Functionality Loaded.");
+
+      // 7. NEW: Stats Screen Logic (Chart Switching)
+
+      const statsState = {
+        period: "month", // week, month, year
+        type: "expense", // expense, income
+      };
+
+      // 数据模拟 (模拟数据库查询结果) - 按周期和类型组织
+      const chartDataMock = {
+        // 支出数据
+        expense: {
+          week: {
+            total: "¥ 1,258.60",
+            trendColor: "var(--primary)",
+            areaFill: "url(#gradientPrimary)",
+            // 周数据路径 - 7天的数据点
+            pathLine: "M0,70 Q42,60 85,80 T170,65 T255,50 T300,40",
+            pathArea: "M0,70 Q42,60 85,80 T170,65 T255,50 T300,40 V100 H0 Z",
+            xAxisLabels: ["一", "二", "三", "四", "五", "六", "日"],
+            // Donut Gradient
+            donutGradient: `conic-gradient(
+              var(--primary) 0% 40%,
+              var(--accent-orange) 40% 65%,
+              var(--accent-blue) 65% 80%,
+              var(--border) 80% 100%
+            )`,
+          },
+          month: {
+            total: "¥ 5,823.40",
+            trendColor: "var(--primary)",
+            areaFill: "url(#gradientPrimary)",
+            // 月数据路径 - 5个时间点（每周）
+            pathLine: "M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40",
+            pathArea: "M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40 V100 H0 Z",
+            xAxisLabels: ["1日", "7日", "14日", "21日", "28日"],
+            donutGradient: `conic-gradient(
+              var(--text-main) 0% 35%,
+              var(--primary) 35% 55%,
+              var(--accent-orange) 55% 70%,
+              var(--accent-blue) 70% 80%,
+              var(--border) 80% 100%
+            )`,
+          },
+          year: {
+            total: "¥ 68,500.00",
+            trendColor: "var(--primary)",
+            areaFill: "url(#gradientPrimary)",
+            // 年数据路径 - 全年趋势
+            pathLine: "M0,90 Q25,80 50,75 T100,60 T150,70 T200,55 T250,40 T300,30",
+            pathArea: "M0,90 Q25,80 50,75 T100,60 T150,70 T200,55 T250,40 T300,30 V100 H0 Z",
+            xAxisLabels: ["1月", "3月", "6月", "9月", "12月"],
+            donutGradient: `conic-gradient(
+              var(--text-main) 0% 30%,
+              var(--primary) 30% 50%,
+              var(--accent-orange) 50% 65%,
+              var(--accent-blue) 65% 75%,
+              var(--border) 75% 100%
+            )`,
+          }
+        },
+        // 收入数据
+        income: {
+          week: {
+            total: "¥ 3,200.00",
+            trendColor: "var(--accent-orange)",
+            areaFill: "url(#gradientOrange)",
+            pathLine: "M0,50 Q42,40 85,30 T170,45 T255,35 T300,20",
+            pathArea: "M0,50 Q42,40 85,30 T170,45 T255,35 T300,20 V100 H0 Z",
+            xAxisLabels: ["一", "二", "三", "四", "五", "六", "日"],
+            donutGradient: `conic-gradient(
+              var(--accent-orange) 0% 70%,
+              var(--accent-purple) 70% 90%,
+              var(--border) 90% 100%
+            )`,
+          },
+          month: {
+            total: "¥ 12,500.00",
+            trendColor: "var(--accent-orange)",
+            areaFill: "url(#gradientOrange)",
+            pathLine: "M0,60 Q40,50 80,30 T160,20 T240,40 T300,10",
+            pathArea: "M0,60 Q40,50 80,30 T160,20 T240,40 T300,10 V100 H0 Z",
+            xAxisLabels: ["1日", "7日", "14日", "21日", "28日"],
+            donutGradient: `conic-gradient(
+              var(--accent-orange) 0% 60%,
+              var(--accent-purple) 60% 85%,
+              var(--border) 85% 100%
+            )`,
+          },
+          year: {
+            total: "¥ 150,000.00",
+            trendColor: "var(--accent-orange)",
+            areaFill: "url(#gradientOrange)",
+            pathLine: "M0,70 Q25,60 50,55 T100,40 T150,50 T200,35 T250,20 T300,10",
+            pathArea: "M0,70 Q25,60 50,55 T100,40 T150,50 T200,35 T250,20 T300,10 V100 H0 Z",
+            xAxisLabels: ["1月", "3月", "6月", "9月", "12月"],
+            donutGradient: `conic-gradient(
+              var(--accent-orange) 0% 55%,
+              var(--accent-purple) 55% 80%,
+              var(--border) 80% 100%
+            )`,
+          }
+        },
+      };
+
+      function updateChartDisplay() {
+        // 获取当前选中的周期和类型的数据
+        const data = chartDataMock[statsState.type][statsState.period];
+
+        // Update Total
+        document.getElementById("stats-total-amount").innerText = data.total;
+
+        // Update period label
+        const periodLabels = {
+          week: "本周",
+          month: "11月",
+          year: "本年"
+        };
+        const typeLabels = {
+          expense: "总支出",
+          income: "总收入"
+        };
+        document.querySelector(".stats-label").innerText = `${periodLabels[statsState.period]} ${typeLabels[statsState.type]}`;
+
+        // Update trend comparison
+        const trendComparison = document.querySelector(".stats-trend-tag");
+        if (trendComparison) {
+          // 根据不同类型显示不同的趋势
+          if (statsState.type === "expense") {
+            trendComparison.innerHTML = '<span class="trend-up">▲ 12%</span><span>对比上期</span>';
+          } else {
+            trendComparison.innerHTML = '<span class="trend-up">▲ 8%</span><span>对比上期</span>';
+          }
+        }
+
+        // Update Trend Chart (SVG)
+        const lineEl = document.getElementById("trend-line");
+        const areaEl = document.getElementById("trend-area");
+
+        lineEl.style.stroke = data.trendColor;
+        areaEl.style.fill = data.areaFill;
+
+        // Simple animation simulation
+        lineEl.style.opacity = 0;
+        areaEl.style.opacity = 0;
+        setTimeout(() => {
+          lineEl.setAttribute("d", data.pathLine);
+          areaEl.setAttribute("d", data.pathArea);
+          lineEl.style.opacity = 1;
+          areaEl.style.opacity = 0.2; // Area usually lower opacity
+        }, 200);
+
+        // Update Donut Chart
+        const donutEl = document.getElementById("category-donut");
+        donutEl.style.background = data.donutGradient;
+
+        // Update X-axis labels
+        const xAxisContainer = document.querySelector(".chart-container .x-axis");
+        if (xAxisContainer) {
+          xAxisContainer.innerHTML = data.xAxisLabels.map(label => 
+            `<span>${label}</span>`
+          ).join('');
+        }
+      }
+
+      function switchStatsPeriod(el, period) {
+        // Update UI
+        document
+          .querySelectorAll(".segment-btn")
+          .forEach((b) => b.classList.remove("active"));
+        el.classList.add("active");
+        statsState.period = period;
+        
+        // 更新图表显示
+        updateChartDisplay();
+        console.log(`Stats Period switched to: ${period}`);
+      }
+
+      function toggleStatsType(type) {
+        statsState.type = type;
+
+        // 1. Toggle Buttons
+        const btnExp = document.getElementById("btn-stats-exp");
+        const btnInc = document.getElementById("btn-stats-inc");
+
+        if (type === "expense") {
+          btnExp.classList.add("active");
+          btnInc.classList.remove("active");
+          document.querySelector(".stats-label").innerText = "11月 总支出";
+        } else {
+          btnInc.classList.add("active");
+          btnExp.classList.remove("active");
+          document.querySelector(".stats-label").innerText = "11月 总收入";
+        }
+
+        // 2. 更新图表显示
+        updateChartDisplay();
+
+        // Update List (Simplified for demo - just changing label)
+        const listLabel = document.querySelector(
+          "#stats-ranking-list"
+        ).previousElementSibling;
+        listLabel.innerText =
+          type === "expense"
+            ? "支出排行榜 (Top Spending)"
+            : "收入来源 (Income Sources)";
+      }
+
+      console.log("Mono App: Stats Redesign Logic Loaded.");
+      toggleStatsType("expense");
     </script>
   </body>
 </html>
