@@ -154,3 +154,61 @@ export interface DataStats {
 }
 
 export type AccountDataType = Omit<NewAccount, 'id'  | 'createdAt' | 'updatedAt'>;
+
+
+// 统计数据类型定义
+export interface ChartDataItem {
+  color: string;
+  percentage: number;
+  label: string;
+}
+
+export interface RankingItem {
+  icon: string;
+  name: string;
+  percent: number;
+  amount: string;
+  color: string;
+}
+
+export interface CategoryData {
+  total: string;
+  color: string;
+  linePath: string;
+  areaPath: string;
+  ranking: RankingItem[];
+  donut: ChartDataItem[];
+}
+
+export interface StatsChartData {
+  expense: CategoryData;
+  income: CategoryData;
+}
+
+// 统计筛选条件
+export interface StatsFilter {
+  period: 'week' | 'month' | 'year';
+  type: 'expense' | 'income';
+  year: number;
+  month: number;
+}
+
+// 统计状态接口
+export interface StatsState {
+  selectedDate: Date;
+  filter: StatsFilter;
+  chartData: StatsChartData;
+  isLoading: boolean;
+  error: string | null;
+}
+
+// 统计操作接口
+export interface StatsActions {
+  setSelectedDate: (date: Date) => void;
+  setFilter: (filter: Partial<StatsFilter>) => void;
+  loadStatsData: (filter: StatsFilter) => Promise<void>;
+  refreshStats: () => Promise<void>;
+  clearError: () => void;
+}
+
+export type StatsStore = StatsState & StatsActions;

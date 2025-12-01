@@ -1,10 +1,24 @@
 import { CategoryDonutChart } from '@/components/biz/charts/CategoryDonutChart';
 import { TrendChart } from '@/components/biz/charts/TrendChart';
+import MonthPickerModal from '@/components/widgets/MonthSelect';
 import { SegmentedControl } from '@/components/widgets/SegmentedControl';
 import React, { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+const WEEK_DATE = {
+  xAxis:['1日', '7日', '14日', '21日', '28日'],
+  yAxis: [1200, 1800, 1500, 2200, 1100],
+}
 
+const MONTH_DATE = {
+  xAxis:['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'],
+  yAxis: [1200, 1800, 1500, 2200, 1100,200.34,300.5,400.7, 22,],
+}
+
+const YEAR_DATE = {
+  xAxis:['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+  yAxis: [0,0,100,300,1200, 1800, 1500, 2200, 1100,200.34,300.5,400.7],
+}
 
 // ----------------------------------------------------------------------
 // 数据 (保持不变)
@@ -13,8 +27,10 @@ const CHART_DATA = {
   expense: {
     total: '¥ 5,823.40',
     color: '#10b981', // Green
-    linePath: 'M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40',
-    areaPath: 'M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40 V100 H0 Z',
+    data: {
+      xAxis: ['1日', '7日', '14日', '21日', '28日'],
+      yAxis: [1200, 1800, 1500, 2200, 1100]
+    },
     ranking: [
       { icon: '🏠', name: '房租房贷', percent: 35, amount: '3,500', color: '#1f2937' },
       { icon: '🍜', name: '餐饮美食', percent: 20, amount: '2,000', color: '#10b981' },
@@ -31,8 +47,10 @@ const CHART_DATA = {
   income: {
     total: '¥ 12,500.00',
     color: '#f59e0b', // Orange
-    linePath: 'M0,60 Q40,50 80,30 T160,20 T240,40 T300,10',
-    areaPath: 'M0,60 Q40,50 80,30 T160,20 T240,40 T300,10 V100 H0 Z',
+    data: {
+      xAxis: ['1日', '7日', '14日', '21日', '28日'],
+      yAxis: [3000, 2500, 4000, 2000, 1000]
+    },
     ranking: [
       { icon: '💰', name: '工资收入', percent: 80, amount: '10,000', color: '#f59e0b' },
       { icon: '💵', name: '兼职外快', percent: 20, amount: '2,500', color: '#8b5cf6' },
@@ -50,6 +68,12 @@ const CHART_DATA = {
 export default function StatsScreen() {
   const [periodIndex, setPeriodIndex] = useState<number>(1); // month
   const [typeIndex, setTypeIndex] = useState<number>(0); // expense
+  const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+  
+  // 月份选择状态
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
 
   const periodValues = ['week', 'month', 'year'] as const;
   const typeValues = ['expense', 'income'] as const;
@@ -58,6 +82,17 @@ export default function StatsScreen() {
   const type = typeValues[typeIndex];
   const currentData = CHART_DATA[type];
   const isExpense = type === 'expense';
+
+  // 月份选择弹窗处理函数
+  const handleMonthSelect = (year: number, month: number) => {
+    setSelectedYear(year);
+    setSelectedMonth(month);
+    setMonthPickerVisible(false);
+  };
+
+  const handleOpenMonthPicker = () => {
+    setMonthPickerVisible(true);
+  };
 
   return (
     <View className="flex-1 bg-background pt-12">
@@ -69,14 +104,26 @@ export default function StatsScreen() {
         {/* 头部控制区 */}
         <View className="flex-row justify-between items-center mb-6">
           {/* 周期切换 Segment */}
-          <View className="w-48">
+          <View className="w-32">
             <SegmentedControl
-              values={['周', '月', '年']}
+              values={['月', '年']}
               selectedIndex={periodIndex}
               onChange={setPeriodIndex}
               containerClassName="h-9"
             />
           </View>
+
+          {/* 日期选择区域 */}
+          <TouchableOpacity 
+            onPress={handleOpenMonthPicker}
+            className="w-32 h-9 bg-card rounded-lg flex-row items-center justify-center"
+            activeOpacity={0.7}
+          >
+            <Text className="text-sm font-medium text-text dark:text-white">
+              {selectedYear}年{selectedMonth}月
+            </Text>
+            <Text className="ml-1 text-gray-500 dark:text-gray-400 text-xs">▼</Text>
+          </TouchableOpacity>
 
           {/* 收支切换 Pills */}
           <View className="w-32">
@@ -92,7 +139,7 @@ export default function StatsScreen() {
         {/* 总览卡片 */}
         <View className="items-center mb-6">
           <Text className="text-gray-500 text-xs mb-1">
-            11月 总{isExpense ? '支出' : '收入'}
+            {selectedMonth}月 总{isExpense ? '支出' : '收入'}
           </Text>
           <Text className="text-text text-3xl font-bold mb-1">
             {currentData.total}
@@ -106,9 +153,9 @@ export default function StatsScreen() {
         {/* 1. 趋势图表 */}
         <TrendChart
           color={currentData.color}
-          linePath={currentData.linePath}
-          areaPath={currentData.areaPath}
-          labels={['1日', '7日', '14日', '21日', '28日']}
+          data={currentData.data}
+          title={`${selectedMonth}月${isExpense ? '支出' : '收入'}趋势`}
+          height={200}
         />
 
         {/* 2. 圆环结构图 */}
@@ -158,6 +205,15 @@ export default function StatsScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* 月份选择弹窗 */}
+      <MonthPickerModal
+        visible={monthPickerVisible}
+        onClose={() => setMonthPickerVisible(false)}
+        onConfirm={handleMonthSelect}
+        initialYear={selectedYear}
+        initialMonth={selectedMonth}
+      />
     </View>
   );
 }
