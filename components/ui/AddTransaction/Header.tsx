@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const types: TransactionType[] = ["expense", "income"];
   const labels = ["支出", "收入"];
-  const { theme } = useTheme();
+  const { theme,isDarkMode } = useTheme();
   const currentIndex = types.indexOf(currentType);
 
   const handleChange = (index: number) => {
@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
           onPress={onCancel}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#666666" />
+          <Ionicons name="arrow-back" size={24} color={isDarkMode ? '#ffffff' : '#666666'} />
         </TouchableOpacity>
 
         {/* 标题 (可选) */}

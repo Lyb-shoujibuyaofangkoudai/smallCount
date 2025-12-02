@@ -2,7 +2,7 @@ import { useTheme } from "@/context/ThemeContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type SettingItemProps = {
@@ -156,6 +156,24 @@ export default function ProfilePage() {
     //     },
     //   ],
     // },
+    {
+      key: "other",
+      label: "其他设置",
+      children: [
+        {
+          key: "support",
+          render: () => (
+            <SettingItem
+              label="支持项目（点个star）"
+              onPress={() => {
+                Linking.openURL("https://github.com/Lyb-shoujibuyaofangkoudai/smallCount");
+              }}
+              showArrow={true}
+            />
+          ),
+        },
+      ],
+    }
   ];
 
   const toggleThemeMode = (value: boolean) => {
