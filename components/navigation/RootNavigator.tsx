@@ -89,6 +89,10 @@ export const RootNavigator = () => {
                 name="dataExport"
                 options={{ presentation: "modal", title: "数据导出", headerShown: false }}
               />
+              <Stack.Screen
+                name="ai"
+                options={{ presentation: "modal", title: "AI 助手", headerShown: false }}
+              />
             </Stack>
           </DatabaseProvider>
         </ThemeProvider>

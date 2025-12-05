@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>small_count (Money Note) - UI V4 Tabbed Home & Minimal Profile</title>
+    <title>
+      small_count (Money Note) - UI V4 Tabbed Home & Minimal Profile
+    </title>
     <style>
       /* --- 1. CSS Variables Definition --- */
       :root {
@@ -796,6 +798,92 @@
       }
 
       /* --- Icons & Utilities --- */
+      /* --- NEW: AI Feature Styles --- */
+
+      /* 1. 顶部 AI 悬浮入口 (头部) */
+      .ai-entry-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        /* AI 标志性的渐变色 */
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #a855f7 50%,
+          #ec4899 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+        cursor: pointer;
+        position: relative;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .ai-entry-btn:active {
+        transform: scale(0.92);
+        box-shadow: 0 2px 6px rgba(168, 85, 247, 0.4);
+      }
+
+      /* 简单的呼吸动画，吸引注意力 */
+      @keyframes ai-breathe {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      /* 2. 首页智能建议小卡片 (插入在日历下方或列表中) */
+      .ai-suggestion-card {
+        margin: 0 16px 16px 16px;
+        background: linear-gradient(
+          to right,
+          rgba(99, 102, 241, 0.1),
+          rgba(236, 72, 153, 0.1)
+        );
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+      }
+
+      .ai-card-icon {
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      /* 暗色模式适配 */
+      [data-theme="dark"] .ai-suggestion-card {
+        background: linear-gradient(
+          to right,
+          rgba(99, 102, 241, 0.15),
+          rgba(236, 72, 153, 0.15)
+        );
+        border-color: rgba(168, 85, 247, 0.3);
+      }
+      [data-theme="dark"] .ai-card-icon {
+        background: #2c2c2e;
+        color: white;
+      }
+
       .icon {
         width: 24px;
         height: 24px;
@@ -1871,7 +1959,7 @@
                     id="trend-area"
                     class="chart-area"
                     d="M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40 V100 H0 Z"
-                    style="fill: url(#gradientPrimary); opacity: 0.2;"
+                    style="fill: url(#gradientPrimary); opacity: 0.2"
                   />
 
                   <!-- 线条层 -->
@@ -1879,7 +1967,7 @@
                     id="trend-line"
                     class="chart-line"
                     d="M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40"
-                    style="stroke: var(--primary); stroke-width: 2; fill: none;"
+                    style="stroke: var(--primary); stroke-width: 2; fill: none"
                   />
                 </svg>
 
@@ -2827,7 +2915,8 @@
             areaFill: "url(#gradientPrimary)",
             // 月数据路径 - 5个时间点（每周）
             pathLine: "M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40",
-            pathArea: "M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40 V100 H0 Z",
+            pathArea:
+              "M0,80 Q30,70 60,40 T120,50 T180,30 T240,60 T300,40 V100 H0 Z",
             xAxisLabels: ["1日", "7日", "14日", "21日", "28日"],
             donutGradient: `conic-gradient(
               var(--text-main) 0% 35%,
@@ -2842,8 +2931,10 @@
             trendColor: "var(--primary)",
             areaFill: "url(#gradientPrimary)",
             // 年数据路径 - 全年趋势
-            pathLine: "M0,90 Q25,80 50,75 T100,60 T150,70 T200,55 T250,40 T300,30",
-            pathArea: "M0,90 Q25,80 50,75 T100,60 T150,70 T200,55 T250,40 T300,30 V100 H0 Z",
+            pathLine:
+              "M0,90 Q25,80 50,75 T100,60 T150,70 T200,55 T250,40 T300,30",
+            pathArea:
+              "M0,90 Q25,80 50,75 T100,60 T150,70 T200,55 T250,40 T300,30 V100 H0 Z",
             xAxisLabels: ["1月", "3月", "6月", "9月", "12月"],
             donutGradient: `conic-gradient(
               var(--text-main) 0% 30%,
@@ -2852,7 +2943,7 @@
               var(--accent-blue) 65% 75%,
               var(--border) 75% 100%
             )`,
-          }
+          },
         },
         // 收入数据
         income: {
@@ -2886,15 +2977,17 @@
             total: "¥ 150,000.00",
             trendColor: "var(--accent-orange)",
             areaFill: "url(#gradientOrange)",
-            pathLine: "M0,70 Q25,60 50,55 T100,40 T150,50 T200,35 T250,20 T300,10",
-            pathArea: "M0,70 Q25,60 50,55 T100,40 T150,50 T200,35 T250,20 T300,10 V100 H0 Z",
+            pathLine:
+              "M0,70 Q25,60 50,55 T100,40 T150,50 T200,35 T250,20 T300,10",
+            pathArea:
+              "M0,70 Q25,60 50,55 T100,40 T150,50 T200,35 T250,20 T300,10 V100 H0 Z",
             xAxisLabels: ["1月", "3月", "6月", "9月", "12月"],
             donutGradient: `conic-gradient(
               var(--accent-orange) 0% 55%,
               var(--accent-purple) 55% 80%,
               var(--border) 80% 100%
             )`,
-          }
+          },
         },
       };
 
@@ -2909,22 +3002,25 @@
         const periodLabels = {
           week: "本周",
           month: "11月",
-          year: "本年"
+          year: "本年",
         };
         const typeLabels = {
           expense: "总支出",
-          income: "总收入"
+          income: "总收入",
         };
-        document.querySelector(".stats-label").innerText = `${periodLabels[statsState.period]} ${typeLabels[statsState.type]}`;
+        document.querySelector(".stats-label").innerText =
+          `${periodLabels[statsState.period]} ${typeLabels[statsState.type]}`;
 
         // Update trend comparison
         const trendComparison = document.querySelector(".stats-trend-tag");
         if (trendComparison) {
           // 根据不同类型显示不同的趋势
           if (statsState.type === "expense") {
-            trendComparison.innerHTML = '<span class="trend-up">▲ 12%</span><span>对比上期</span>';
+            trendComparison.innerHTML =
+              '<span class="trend-up">▲ 12%</span><span>对比上期</span>';
           } else {
-            trendComparison.innerHTML = '<span class="trend-up">▲ 8%</span><span>对比上期</span>';
+            trendComparison.innerHTML =
+              '<span class="trend-up">▲ 8%</span><span>对比上期</span>';
           }
         }
 
@@ -2950,11 +3046,13 @@
         donutEl.style.background = data.donutGradient;
 
         // Update X-axis labels
-        const xAxisContainer = document.querySelector(".chart-container .x-axis");
+        const xAxisContainer = document.querySelector(
+          ".chart-container .x-axis"
+        );
         if (xAxisContainer) {
-          xAxisContainer.innerHTML = data.xAxisLabels.map(label => 
-            `<span>${label}</span>`
-          ).join('');
+          xAxisContainer.innerHTML = data.xAxisLabels
+            .map((label) => `<span>${label}</span>`)
+            .join("");
         }
       }
 
@@ -2965,7 +3063,7 @@
           .forEach((b) => b.classList.remove("active"));
         el.classList.add("active");
         statsState.period = period;
-        
+
         // 更新图表显示
         updateChartDisplay();
         console.log(`Stats Period switched to: ${period}`);
