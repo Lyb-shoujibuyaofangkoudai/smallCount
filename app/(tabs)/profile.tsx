@@ -139,7 +139,7 @@ export default function ProfilePage() {
           key: "ai",
           render: () => (
             <SettingItem
-              label="AI设置"
+              label="AI设置（BETA）"
               onPress={() => {router.push("/aiSetting")}}
               showArrow={true}
             />

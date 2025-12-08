@@ -153,7 +153,7 @@ export default function AiSetting() {
         <View className="mt-6 mb-6">
           <Text className="text-2xl font-bold text-text">模型配置</Text>
           <Text className="text-sm text-textSecondary mt-2">
-            配置 AI 服务的连接参数，确保助手正常工作。
+            配置 AI 服务的连接参数，确保助手正常工作。<Text className="text-xs font-medium text-yellow-500">当前功能为Beta版本，可能存在不稳定情况。</Text>
           </Text>
         </View>
 

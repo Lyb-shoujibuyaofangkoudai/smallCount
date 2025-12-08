@@ -25,9 +25,7 @@ import {
   IMessage,
   InputToolbar,
 } from "react-native-gifted-chat";
-import {
-  useSafeAreaInsets
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 // --- 1. Mock Data & Types ---
@@ -55,7 +53,12 @@ export default function AIDemo() {
   } = useDataStore();
 
   // 获取AI配置
-  const { initializeConfig, apiKey, apiUrl: baseURL, modelName: defaultModel } = useSettingStore();
+  const {
+    initializeConfig,
+    apiKey,
+    apiUrl: baseURL,
+    modelName: defaultModel,
+  } = useSettingStore();
 
   // State
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -64,7 +67,7 @@ export default function AIDemo() {
   const [sessionId, setSessionId] = useState<string>("");
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
+  const [hasApiKey, setHasApiKey] = useState<boolean>(true);
   const responseBufferRef = useRef<string>("");
   const typingTimerRef = useRef<number | null>(null);
 
@@ -79,7 +82,7 @@ export default function AIDemo() {
 
   function createSmallCountAgents() {
     // 从 useSettingStore 获取 API 配置
-    
+
     // 初始化 AgentsCreate
     const agentsCreator = new AgentsCreate({
       apiKey,
@@ -108,10 +111,10 @@ export default function AIDemo() {
   useEffect(() => {
     // 初始化AI配置
     initializeConfig();
-    
+
     // 检查API Key是否存在
     checkApiKeyExists();
-    
+
     // 初始化 Core
     const { agentsCreator, agentCore, sessionId } = createSmallCountAgents();
 
@@ -157,9 +160,9 @@ export default function AIDemo() {
   useEffect(() => {
     // 检查是否已存在API Key提示消息
     const hasApiKeyWarning = messages.some(
-      msg => msg.system && msg.text?.includes('您尚未配置 AI API Key')
+      (msg) => msg.system && msg.text?.includes("您尚未配置 AI API Key")
     );
-    
+
     // 如果没有API Key且没有警告消息，添加警告
     if (!hasApiKey && !hasApiKeyWarning) {
       const warningMessage = {
@@ -169,19 +172,21 @@ export default function AIDemo() {
         user: { _id: 3, name: "系统通知" },
         system: true,
       };
-      setMessages(prev => [...prev, warningMessage]);
+      setMessages((prev) => [...prev, warningMessage]);
     }
     // 如果有API Key且有警告消息，移除警告
     else if (hasApiKey && hasApiKeyWarning) {
-      setMessages(prev => prev.filter(
-        msg => !(msg.system && msg.text?.includes('您尚未配置 AI API Key'))
-      ));
+      setMessages((prev) =>
+        prev.filter(
+          (msg) => !(msg.system && msg.text?.includes("您尚未配置 AI API Key"))
+        )
+      );
     }
   }, [hasApiKey]);
 
   // 检查API Key是否存在
   const checkApiKeyExists = () => {
-    const hasKey = !!(apiKey && apiKey.trim() !== '');
+    const hasKey = !!(apiKey && apiKey.trim() !== "");
     setHasApiKey(hasKey);
     return hasKey;
   };
@@ -267,13 +272,13 @@ export default function AIDemo() {
       // 检查是否有 API Key
       if (!hasApiKey) {
         Toast.show({
-          type: 'error',
-          text1: '无法发送消息',
-          text2: '请先配置 AI API Key，点击右上角的「需要配置」按钮进行设置',
+          type: "error",
+          text1: "无法发送消息",
+          text2: "请先配置 AI API Key，点击右上角的「需要配置」按钮进行设置",
         });
         return;
       }
-      
+
       if (!core || !sessionId) return;
       const userMsg = newMessages[0];
       if (!userMsg?.text) return;
@@ -611,34 +616,42 @@ export default function AIDemo() {
             onPress={() => setShowAccountModal(true)}
             className="flex-row items-center"
           >
-            <Text
-              className="text-base font-medium mr-1 text-primary"
-            > 
+            <Text className="text-base font-medium mr-1 text-primary">
               当前账本：{activeAccount?.name || "选择账本"}
             </Text>
             <Ionicons name="chevron-down" size={18} color={theme.colors.text} />
           </TouchableOpacity>
         </View>
-        
+
         {/* 第二行：API Key 提示 */}
-        {!hasApiKey && (
+        {hasApiKey ? (
           <View className="flex-row items-center justify-center">
-              <Ionicons name="warning" size={16} color="#F44336" />
+            <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+            <Text
+              className="text-sm font-medium ml-1"
+              style={{ color: "#4CAF50" }}
+            >
+              API Key 已配置，AI 功能已启用 <Text className="text-xs font-medium text-yellow-500">BETA</Text>
+            </Text>
+          </View>
+        ) : (
+          <View className="flex-row items-center justify-center">
+            <Ionicons name="warning" size={16} color="#F44336" />
+            <Text
+              className="text-sm font-medium ml-1"
+              style={{ color: "#F44336" }}
+            >
+              需要配置 API Key 才能使用 AI 功能，
+            </Text>
+            <TouchableOpacity onPress={() => router.push("/aiSetting")}>
               <Text
-                className="text-sm font-medium ml-1"
+                className="text-sm font-medium underline"
                 style={{ color: "#F44336" }}
               >
-                需要配置 API Key 才能使用 AI 功能，
+                点击此处前往设置
               </Text>
-              <TouchableOpacity onPress={() => router.push('/aiSetting')}>
-                <Text
-                  className="text-sm font-medium underline"
-                  style={{ color: "#F44336" }}
-                >
-                  点击此处前往设置
-                </Text>
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -661,7 +674,7 @@ export default function AIDemo() {
         selectedId={activeAccountId}
         data={accounts}
       />
-      
+
       <Toast />
     </>
   );
