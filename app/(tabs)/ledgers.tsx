@@ -66,7 +66,7 @@ export default function AccountsScreen() {
       console.log("Delete item:", id);
       Alert.alert(
         "确认删除",
-        `确定删除账户 ${getFirstCharToUpper(activeAccount?.name || "")} 吗？`,
+        `确定删除账户 ${activeAccount?.name || ""} 吗？`,
         [
           { text: "取消", style: "cancel" },
           {

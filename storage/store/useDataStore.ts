@@ -190,6 +190,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       const { accounts } = get();
       set({
         accounts: accounts.map((acc) => (acc.id === id ? updatedAccount : acc)),
+        activeAccount: updatedAccount.isActive ? updatedAccount : get().activeAccount,
       });
     } catch (error) {
       set({
