@@ -1,6 +1,6 @@
 import { useTheme } from "@/context/ThemeContext";
 import { colors } from "@/theme/colors";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   StyleProp,
   Text,
@@ -199,6 +199,8 @@ const CustomDay = ({
   );
 };
 
+export type SelectionMode = 'single' | 'multiple';
+
 interface CalendarWidgetProps {
   // 自定义交易数据
   transactionsData?: {
@@ -208,9 +210,19 @@ interface CalendarWidgetProps {
     };
   };
 
+  // 选择模式
+  selectionMode?: SelectionMode; // 'single' | 'multiple'
+
   // 多日期选择相关
   selectedDates?: string[]; // 外部传入的选中日期
   onSelectedDatesChange?: (dates: string[]) => void; // 选中日期变化时的回调
+
+  // 单日期选择相关
+  selectedDate?: string; // 外部传入的选中日期（单选模式）
+  onSelectedDateChange?: (date: string | undefined) => void; // 选中日期变化时的回调（单选模式）
+
+  // 日期变化监听（统一接口）
+  onDayChange?: (result: string | string[] | undefined) => void; // 日期变化时的回调，单选返回 string | undefined，多选返回 string[]
 
   // Calendar 核心属性
   current?: string;
@@ -244,9 +256,16 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({
   transactionsData = {},
+  // 选择模式
+  selectionMode = 'multiple',
   // 多日期选择相关
   selectedDates: externalSelectedDates,
   onSelectedDatesChange,
+  // 单日期选择相关
+  selectedDate: externalSelectedDate,
+  onSelectedDateChange,
+  // 日期变化监听
+  onDayChange,
   // Calendar 默认属性
   current = new Date().toISOString().split("T")[0], // 默认使用当前日期
   initialDate,
@@ -272,37 +291,72 @@ export default function CalendarWidget({
 }: CalendarWidgetProps) {
   const { isDarkMode, theme: currentTheme } = useTheme();
 
-  // 内部管理选中状态 - 改为支持多日期选择，支持外部控制
+  // 内部管理选中状态 - 支持单选和多选模式
   const [internalSelectedDates, setInternalSelectedDates] = useState<
     Set<string>
   >(new Set(externalSelectedDates || []));
+  const [internalSelectedDate, setInternalSelectedDate] = useState<string | undefined>(
+    externalSelectedDate
+  );
+
+  // 同步外部 selectedDates 变化
+  useEffect(() => {
+    if (externalSelectedDates !== undefined) {
+      setInternalSelectedDates(new Set(externalSelectedDates));
+    }
+  }, [externalSelectedDates]);
+
+  // 同步外部 selectedDate 变化
+  useEffect(() => {
+    if (externalSelectedDate !== undefined) {
+      setInternalSelectedDate(externalSelectedDate);
+    }
+  }, [externalSelectedDate]);
 
   // 使用外部传入的选中日期或内部状态
   const selectedDates = externalSelectedDates
     ? new Set(externalSelectedDates)
     : internalSelectedDates;
+  const selectedDate = externalSelectedDate !== undefined
+    ? externalSelectedDate
+    : internalSelectedDate;
 
-  // 更新选中状态的统一方法
-  const updateSelectedDates = (newDates: Set<string>) => {
+  // 更新选中状态的统一方法 - 多选模式
+  const updateSelectedDates = useCallback((newDates: Set<string>) => {
     if (externalSelectedDates !== undefined) {
-      // 如果有外部控制，只触发回调
       onSelectedDatesChange?.(Array.from(newDates));
     } else {
-      // 否则更新内部状态
       setInternalSelectedDates(newDates);
     }
-  };
+  }, [externalSelectedDates, onSelectedDatesChange]);
+
+  // 更新选中状态的统一方法 - 单选模式
+  const updateSelectedDate = useCallback((newDate: string | undefined) => {
+    if (externalSelectedDate !== undefined) {
+      onSelectedDateChange?.(newDate);
+    } else {
+      setInternalSelectedDate(newDate);
+    }
+  }, [externalSelectedDate, onSelectedDateChange]);
+
+  // 获取当前选中的日期集合（用于统一处理）
+  const selectedDatesSet = useMemo(() => {
+    if (selectionMode === 'single') {
+      return selectedDate ? new Set([selectedDate]) : new Set<string>();
+    }
+    return selectedDates;
+  }, [selectionMode, selectedDate, selectedDates]);
 
   // 合并外部传入的 markedDates 和内部选中的日期
-  const getMarkedDates = () => {
+  const getMarkedDates = useCallback(() => {
     const baseMarkedDates = markedDates || {};
 
     // 如果有选中的日期，添加选中样式
-    if (selectedDates.size > 0) {
+    if (selectedDatesSet.size > 0) {
       const markedDatesWithSelection = { ...baseMarkedDates };
 
       // 为每个选中的日期添加选中样式
-      selectedDates.forEach((dateString) => {
+      selectedDatesSet.forEach((dateString) => {
         markedDatesWithSelection[dateString] = {
           selected: true,
           selectedColor: colors.primary[600],
@@ -315,74 +369,86 @@ export default function CalendarWidget({
     }
 
     return baseMarkedDates;
-  };
+  }, [markedDates, selectedDatesSet]);
 
   // 事件处理方法
-  const handleDayPress = (date: DateData) => {
+  const handleDayPress = useCallback((date: DateData) => {
     console.log("CalendarWidget: onDayPress triggered", date);
 
-    // 更新选中状态 - 支持多日期选择
-    const newSelectedDates = new Set(selectedDates);
-    if (newSelectedDates.has(date.dateString)) {
-      // 如果已选中，则取消选中
-      newSelectedDates.delete(date.dateString);
+    if (selectionMode === 'single') {
+      // 单选模式：直接更新选中日期
+      if (selectedDate === date.dateString) {
+        // 如果再次点击已选中的日期，取消选择
+        updateSelectedDate(undefined);
+        // 触发日期变化回调 - 单选模式返回 undefined
+        onDayChange?.(undefined);
+      } else {
+        updateSelectedDate(date.dateString);
+        // 触发日期变化回调 - 单选模式返回单个日期字符串
+        onDayChange?.(date.dateString);
+      }
     } else {
-      // 如果未选中，则添加选中
-      newSelectedDates.add(date.dateString);
+      // 多选模式：支持多日期选择
+      const newSelectedDates = new Set(selectedDates);
+      if (newSelectedDates.has(date.dateString)) {
+        newSelectedDates.delete(date.dateString);
+      } else {
+        newSelectedDates.add(date.dateString);
+      }
+      updateSelectedDates(newSelectedDates);
+      // 触发日期变化回调 - 多选模式返回日期数组
+      onDayChange?.(Array.from(newSelectedDates));
     }
-
-    // 使用统一的更新方法
-    updateSelectedDates(newSelectedDates);
 
     // 触发外部回调
     onDayPress?.(date);
-  };
+  }, [selectionMode, selectedDate, selectedDates, updateSelectedDate, updateSelectedDates, onDayPress, onDayChange]);
 
-  const handleDayLongPress = (date: DateData) => {
+  const handleDayLongPress = useCallback((date: DateData) => {
     console.log("CalendarWidget: onDayLongPress triggered", date);
     onDayLongPress?.(date);
-  };
+  }, [onDayLongPress]);
 
-  const handleMonthChange = (date: DateData) => {
+  const handleMonthChange = useCallback((date: DateData) => {
     console.log("CalendarWidget: onMonthChange triggered", date);
     onMonthChange?.(date);
-  };
+  }, [onMonthChange]);
 
-  const handleVisibleMonthsChange = (months: DateData[]) => {
+  const handleVisibleMonthsChange = useCallback((months: DateData[]) => {
     console.log("CalendarWidget: onVisibleMonthsChange triggered", months);
     onVisibleMonthsChange?.(months);
-  };
+  }, [onVisibleMonthsChange]);
 
   // 创建一个包装组件来传递 transactionsData、主题配置和选中状态
-  const DayComponentWithProps = (props: any) => {
-    // 检查当前日期是否被选中 - 支持多日期选择
-    const isDateSelected = selectedDates.has(props.date?.dateString);
+  const DayComponentWithProps = useCallback((props: any) => {
+    // 检查当前日期是否被选中 - 支持单选和多选模式
+    const isDateSelected = selectedDatesSet.has(props.date?.dateString);
 
     // 如果选中，修改 state 参数
     const enhancedProps = {
       ...props,
       state: isDateSelected ? "selected" : props.state,
       transactionsData,
-      isDarkMode, // 从主组件传递主题状态
+      isDarkMode,
     };
 
     return <CustomDay {...enhancedProps} />;
-  };
+  }, [selectedDatesSet, transactionsData, isDarkMode]);
   // 默认头部样式 - 支持亮暗主题
-  const defaultHeaderStyle: StyleProp<ViewStyle> = {
+  const defaultHeaderStyle: StyleProp<ViewStyle> = useMemo(() => ({
     backgroundColor: currentTheme.colors.card,
     borderBottomWidth: 1,
     borderBottomColor: currentTheme.colors.border,
     paddingBottom: 8,
-  };
+  }), [currentTheme.colors.card, currentTheme.colors.border]);
 
   // 默认容器样式 - 支持亮暗主题
-  const defaultStyle: StyleProp<ViewStyle> = {
+  const defaultStyle: StyleProp<ViewStyle> = useMemo(() => ({
     backgroundColor: currentTheme.colors.card,
-  };
+  }), [currentTheme.colors.card]);
 
   // 合并默认主题和传入的主题 - 支持亮暗主题
-  const defaultTheme = {
+  const defaultTheme = useMemo(() => ({
     backgroundColor: currentTheme.colors.card,
     calendarBackground: currentTheme.colors.card,
     textSectionTitleColor: currentTheme.colors.border,
@@ -396,7 +462,7 @@ export default function CalendarWidget({
     textDayFontFamily: "System",
     textMonthFontFamily: "System",
     textDayHeaderFontFamily: "System",
-  };
+  }), [currentTheme.colors.card, currentTheme.colors.border, currentTheme.colors.primary, currentTheme.colors.text]);
 
   const [key, setKey] = useState(0);
   useEffect(() => {
@@ -405,35 +471,35 @@ export default function CalendarWidget({
 
   return (
     <Calendar
-      // 修复切换主题后theme不生效问题，强制刷新，确保切换主题时会重新生效
-      key={key}
-      // 基础属性
-      current={current}
-      initialDate={initialDate}
-      minDate={minDate}
-      maxDate={maxDate}
-      allowSelectionOutOfRange={allowSelectionOutOfRange}
-      markedDates={getMarkedDates()}
-      hideExtraDays={hideExtraDays}
-      showSixWeeks={showSixWeeks}
-      disableMonthChange={disableMonthChange}
-      enableSwipeMonths={enableSwipeMonths}
-      disabledByDefault={disabledByDefault}
-      disabledByWeekDays={disabledByWeekDays}
-      // 样式属性
-      style={style ? [defaultStyle, style] : defaultStyle}
-      headerStyle={
-        headerStyle ? [defaultHeaderStyle, headerStyle] : defaultHeaderStyle
-      }
-      theme={theme ? { ...defaultTheme, ...theme } : defaultTheme}
-      customHeader={customHeader}
-      // 自定义日期组件
-      dayComponent={DayComponentWithProps}
-      // 事件回调
-      onDayPress={handleDayPress}
-      onDayLongPress={handleDayLongPress}
-      onMonthChange={handleMonthChange}
-      onVisibleMonthsChange={handleVisibleMonthsChange}
-    />
+        // 修复切换主题后theme不生效问题，强制刷新，确保切换主题时会重新生效
+        key={key}
+        // 基础属性
+        current={current}
+        initialDate={initialDate}
+        minDate={minDate}
+        maxDate={maxDate}
+        allowSelectionOutOfRange={allowSelectionOutOfRange}
+        markedDates={getMarkedDates()}
+        hideExtraDays={hideExtraDays}
+        showSixWeeks={showSixWeeks}
+        disableMonthChange={disableMonthChange}
+        enableSwipeMonths={enableSwipeMonths}
+        disabledByDefault={disabledByDefault}
+        disabledByWeekDays={disabledByWeekDays}
+        // 样式属性
+        style={style ? [defaultStyle, style] : defaultStyle}
+        headerStyle={
+          headerStyle ? [defaultHeaderStyle, headerStyle] : defaultHeaderStyle
+        }
+        theme={theme ? { ...defaultTheme, ...theme } : defaultTheme}
+        customHeader={customHeader}
+        // 自定义日期组件
+        dayComponent={DayComponentWithProps}
+        // 事件回调
+        onDayPress={handleDayPress}
+        onDayLongPress={handleDayLongPress}
+        onMonthChange={handleMonthChange}
+        onVisibleMonthsChange={handleVisibleMonthsChange}
+      />
   );
 }

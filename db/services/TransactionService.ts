@@ -106,38 +106,33 @@ export const TransactionService = {
    async enrichTransactionsWithTagsAndPaymentMethods(
     result: ResultWithItems
   ): Promise<TransactionWithTagAndPaymentMethod[]> {
-    // 获取所有交易记录对应的标签ID
     const tagIds = result.items
-      .map(tx => tx.tagId)
-      .filter((tagId): tagId is string => tagId !== null && tagId !== undefined);
-    
-    // 获取所有交易记录对应的支付方式ID
+          .map(tx => tx.tagId)
+          .filter((tagId): tagId is string => tagId !== null && tagId !== undefined);
     const paymentMethodIds = result.items
-      .map(tx => tx.paymentMethodId)
-      .filter((paymentMethodId): paymentMethodId is string => paymentMethodId !== null && paymentMethodId !== undefined);
+          .map(tx => tx.paymentMethodId)
+          .filter((paymentMethodId): paymentMethodId is string => paymentMethodId !== null && paymentMethodId !== undefined)
     
     // 批量获取标签信息
     const tagsMap = new Map<string, Omit<NewTag, 'id' | 'createdAt' | 'updatedAt'>>();
     if (tagIds.length > 0) {
-      // 这里可以优化为批量查询，但目前先使用循环查询
-      for (const tagId of tagIds) {
-        const tag = await tagRepo.findById(tagId);
+      const tags = await tagRepo.findByIds(tagIds);
+      tags.forEach(tag => {
         if (tag) {
-          tagsMap.set(tagId, tag);
+          tagsMap.set(tag.id, tag);
         }
-      }
+      });
     }
     
     // 批量获取支付方式信息
     const paymentMethodsMap = new Map<string, Omit<PaymentMethod, 'id' | 'createdAt' | 'updatedAt'>>();
     if (paymentMethodIds.length > 0) {
-      // 这里可以优化为批量查询，但目前先使用循环查询
-      for (const paymentMethodId of paymentMethodIds) {
-        const paymentMethod = await paymentMethodRepo.findById(paymentMethodId);
+      const paymentMethods = await paymentMethodRepo.findByIds(paymentMethodIds);
+      paymentMethods.forEach(paymentMethod => {
         if (paymentMethod) {
-          paymentMethodsMap.set(paymentMethodId, paymentMethod);
+          paymentMethodsMap.set(paymentMethod.id, paymentMethod);
         }
-      }
+      });
     }
     
     // 拼装交易记录、标签信息和支付方式信息

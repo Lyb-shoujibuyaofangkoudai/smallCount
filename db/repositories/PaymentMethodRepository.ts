@@ -1,5 +1,5 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { paymentMethods } from '../schema';
 import { BaseRepository } from './BaseRepository';
 
@@ -49,6 +49,16 @@ export class PaymentMethodRepository extends BaseRepository<PaymentMethod> {
   async findById(id: string): Promise<PaymentMethod | undefined> {
     return await this.db.query.paymentMethods.findFirst({
       where: eq(paymentMethods.id, id),
+    });
+  }
+
+  // 批量根据ID获取支付方式
+  async findByIds(ids: string[]): Promise<PaymentMethod[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return await this.db.query.paymentMethods.findMany({
+      where: inArray(paymentMethods.id, ids),
     });
   }
 

@@ -1,5 +1,5 @@
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
-import { eq, isNull, like, or, sql } from "drizzle-orm";
+import { eq, inArray, isNull, like, or, sql } from "drizzle-orm";
 import { tags } from "../schema";
 import { BaseRepository } from "./BaseRepository";
 
@@ -29,6 +29,16 @@ export class TagRepository extends BaseRepository<Tag> {
   async findById(id: string): Promise<Tag | undefined> {
     return await this.db.query.tags.findFirst({
       where: eq(tags.id, id),
+    });
+  }
+
+  // 批量通过ID获取标签
+  async findByIds(ids: string[]): Promise<Tag[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return await this.db.query.tags.findMany({
+      where: inArray(tags.id, ids),
     });
   }
 

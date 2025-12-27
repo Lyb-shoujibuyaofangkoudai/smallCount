@@ -234,7 +234,8 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         const result = await TransactionService.getTransactionsByMonth(
           accountId,
           year,
-          month
+          month,
+          { ignorePagination: true }
         );
         transactions = result.items || [];
       }

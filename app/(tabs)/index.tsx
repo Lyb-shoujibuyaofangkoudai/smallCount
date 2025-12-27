@@ -1,3 +1,4 @@
+import CalendarDayIEDetail from "@/components/biz/CalendarDayIEDetail";
 import DashboardHeader from "@/components/ui/DashboardHeader";
 import CalendarWidget from "@/components/widgets/CalendarWidget";
 import MonthSelect from "@/components/widgets/MonthSelect";
@@ -222,14 +223,26 @@ export default function HomeScreen() {
 
           {/* 日历组件 - 传入真实数据 */}
           <CalendarWidget
+            selectionMode="single"
             current={selectedDate.toISOString().split("T")[0]}
+            selectedDate={selectedDate.toISOString().split("T")[0]}
             transactionsData={transactionsDataForCalendar}
-            onDayPress={(date) => {
-              // console.log("选中日期:", date);
+            onDayChange={(date) => {
+              // 只在date不为undefined时更新选中日期
+              if (date) {
+                setSelectedDate(new Date(date as string));
+              }
+            }}
+            onSelectedDateChange={(date) => {
+              // 只在date不为undefined时更新选中日期
+              if (date) {
+                setSelectedDate(new Date(date));
+              }
             }}
             onMonthChange={(date) => {
               // 更新选中日期并重新获取数据
-              setSelectedDate(new Date(date.timestamp));
+              // 将选中日期设置为新月份的第一天，避免切换月份后自动选中相同日期号的日期
+              setSelectedDate(new Date(date.year, date.month - 1, 1));
               loadTransactions(activeAccountId!, date.year, date.month);
             }}
             style={{
@@ -237,6 +250,8 @@ export default function HomeScreen() {
               marginBottom: 16,
             }}
           />
+
+          <CalendarDayIEDetail />
 
           {/* 底部间距 */}
           <View className="h-8" />
