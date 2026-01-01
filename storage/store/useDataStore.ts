@@ -3,6 +3,7 @@
 import { NewTag } from "@/db/repositories/TagRepository";
 import { Transaction } from "@/db/repositories/TransactionRepository";
 import { AccountService } from "@/db/services/AccountService";
+import { AttachmentService } from "@/db/services/AttachmentService";
 import { PaymentMethodService } from "@/db/services/PaymentMethodService";
 import { TagService } from "@/db/services/TagService";
 import { TransactionService } from "@/db/services/TransactionService";
@@ -64,16 +65,30 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       set({ isLoading: true, error: null });
       // 加载当前用户
       await get().loadCurrentUser();
+      console.log("✅加载当前用户:", get().currentUser);
       await get().loadAccounts();
-      const defaultAccount = get().accounts.find((a) => a.isActive);
-      set({ activeAccount: defaultAccount || null });
-      set({ activeAccountId: defaultAccount!.id });
+      console.log("✅加载账户:", JSON.stringify(get().accounts));
+      const activeAccount = get().accounts.find((a) => a.isActive);
+      if (!activeAccount) {
+        console.log("⚠️未找到活跃账户，使用默认账户");
+        const defaultAccount = get().accounts.find((a) => a.isDefault);
+        console.log("✅默认账户:", defaultAccount);
+        set({ activeAccount: defaultAccount || null });
+        set({ activeAccountId: defaultAccount!.id });
+      } else {
+        set({ activeAccount: activeAccount || null });
+        set({ activeAccountId: activeAccount!.id });
+      }
+      console.log("开始加载其他数据:标签、支付方式、交易");
       // 并行加载基础数据
       await Promise.all([
         get().loadTags(),
         get().loadPaymentMethods(),
-        get().loadTransactions(defaultAccount!.id),
-      ]);
+        get().loadTransactions(activeAccount!.id),
+      ])
+      console.log("✅加载标签:", get().tags);
+      console.log("✅加载支付方式:", get().paymentMethods);
+      console.log("✅加载交易:", get().transactions);
 
       set({
         isInitialized: true,
@@ -115,6 +130,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   // 切换活跃账户
   switchActiveAccount: async (accountId: string) => {
     try {
+      console.warn("切换活跃账户:", accountId);
       // 保存旧的活跃账户ID
       const { accounts, activeAccountId: oldActiveAccountId } = get();
       // 更新账户列表中每个账户的isActive状态
@@ -133,7 +149,8 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
           activeAccount: account,
         });
         // 切换旧的活跃账户为非活跃状态
-        if (oldActiveAccountId) {
+        if (oldActiveAccountId && oldActiveAccountId !== accountId) {
+          console.log("切换旧活跃账户为非活跃状态:", oldActiveAccountId);
           await AccountService.updateAccount(oldActiveAccountId, {
             isActive: false,
           });
@@ -157,6 +174,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
   addAccount: async (accountData: AccountDataType) => {
     try {
+      console.log("调用useDataStore添加账户:", accountData);
       // 直接将accountData作为参数传递给createNewAccount函数
       if (accountData.isActive) {
         // 先将当前活跃账户设为非活跃
@@ -180,6 +198,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
 
   updateAccount: async (id, accountData) => {
     try {
+      console.log("调用useDataStore更新账户:", id, accountData);
       const updatedAccount = await AccountService.updateAccount(
         id,
         accountData
@@ -218,7 +237,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
     }
   },
 
-  // 交易操作
+
   loadTransactions: async (
     accountId: string,
     year: number = new Date().getFullYear(),
@@ -510,6 +529,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       set({ paymentMethodsLoading: true, paymentMethodsError: null });
 
       const paymentMethods = await PaymentMethodService.getAllPaymentMethods();
+      console.log("获取数据库中的所有支付方式:", paymentMethods.length);
       set({ paymentMethods, paymentMethodsLoading: false });
     } catch (error) {
       set({
@@ -572,6 +592,24 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : "删除支付方式失败",
+      });
+      throw error;
+    }
+  },
+
+  // todo: 票据图片添加到交易单中
+  addTicketImagesToTransaction: async (ticketImagesData, transactionId) => {
+    try {
+      const attachmentImgs = await AttachmentService.createBatch(ticketImagesData);
+      if (attachmentImgs.length) {
+        return await TransactionService.updateTransaction(transactionId, {
+          attachmentIds: attachmentImgs.map((img) => img.id).join(","),
+        });
+      }
+      return null;
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "添加票据图片失败",
       });
       throw error;
     }

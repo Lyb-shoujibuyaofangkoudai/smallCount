@@ -2,6 +2,7 @@
 import type { InferInsertModel } from 'drizzle-orm';
 import { PaginationParams } from '../db-helper';
 import { Account } from '../repositories/AccountRepository';
+import { Attachment, AttachmentRepository } from '../repositories/AttachmentRepository';
 import type { NewPaymentMethod, PaymentMethod } from '../repositories/PaymentMethodRepository';
 import { PaymentMethodRepository } from '../repositories/PaymentMethodRepository';
 import { NewTag, TagRepository } from '../repositories/TagRepository';
@@ -14,11 +15,13 @@ type NewTransaction = InferInsertModel<typeof transactions>;
 const transactionRepo = new TransactionRepository();
 const tagRepo = new TagRepository();
 const paymentMethodRepo = new PaymentMethodRepository();
+const attachmentRepo = new AttachmentRepository();
 
 // 定义包含标签和支付方式信息的交易记录类型
-export interface TransactionWithTagAndPaymentMethod extends Transaction {
+export interface TransactionWithDetailInfo extends Transaction {
   tag?: Omit<NewTag, 'id' | 'createdAt' | 'updatedAt'>;
   paymentMethod?: Omit<PaymentMethod, 'id' | 'createdAt' | 'updatedAt'>;
+  attachments?: Omit<Attachment, 'id' | 'createdAt' | 'updatedAt'>[];
 }
 
 // 定义每周统计数据接口
@@ -28,11 +31,11 @@ export interface WeeklyStats {
   endDate: Date; // 周结束日期
   income: number; // 收入总额
   expense: number; // 支出总额
-  transactions: TransactionWithTagAndPaymentMethod[]; // 本周交易记录
+  transactions: TransactionWithDetailInfo[]; // 本周交易记录
 }
 
-export interface PaginatedTransactionsWithTagsAndPaymentMethods {
-  items: TransactionWithTagAndPaymentMethod[];
+export interface PaginatedTransactionsWithDetailInfo {
+  items: TransactionWithDetailInfo[];
   total: number;
   page: number;
   pageSize: number;
@@ -87,7 +90,7 @@ export const TransactionService = {
     const createdTransactions = await transactionRepo.createBatchTransactionsWithBalanceUpdate(transactionsData);
     
     // 为交易记录添加标签和支付方式信息
-    const enrichedTransactions = await this.enrichTransactionsWithTagsAndPaymentMethods({
+    const enrichedTransactions = await this.enrichTransactionsWithDetailInfo({
       items: createdTransactions,
       total: createdTransactions.length,
       page: 1,
@@ -103,15 +106,20 @@ export const TransactionService = {
    * @param result - 包含交易记录的结果对象
    * @returns 带有标签和支付方式信息的交易记录列表
    */
-   async enrichTransactionsWithTagsAndPaymentMethods(
+   async enrichTransactionsWithDetailInfo(
     result: ResultWithItems
-  ): Promise<TransactionWithTagAndPaymentMethod[]> {
+  ): Promise<TransactionWithDetailInfo[]> {
     const tagIds = result.items
           .map(tx => tx.tagId)
           .filter((tagId): tagId is string => tagId !== null && tagId !== undefined);
+          
     const paymentMethodIds = result.items
           .map(tx => tx.paymentMethodId)
           .filter((paymentMethodId): paymentMethodId is string => paymentMethodId !== null && paymentMethodId !== undefined)
+
+    const attachmentIds = result.items
+          .map(tx => tx.attachmentIds?.split(',') || [])
+          .flat();
     
     // 批量获取标签信息
     const tagsMap = new Map<string, Omit<NewTag, 'id' | 'createdAt' | 'updatedAt'>>();
@@ -135,11 +143,23 @@ export const TransactionService = {
       });
     }
     
+    // 批量获取附件信息
+    const attachmentsMap = new Map<string, Omit<Attachment, 'id' | 'createdAt' | 'updatedAt'>>();
+    if (attachmentIds.length > 0) {
+      const attachments = await attachmentRepo.findByIds(attachmentIds);
+      attachments.forEach(attachment => {
+        if (attachment) {
+          attachmentsMap.set(attachment.id, attachment);
+        }
+      });
+    }
+    
     // 拼装交易记录、标签信息和支付方式信息
     return result.items.map(tx => ({
       ...tx,
       tag: tx.tagId ? tagsMap.get(tx.tagId) : undefined,
-      paymentMethod: tx.paymentMethodId ? paymentMethodsMap.get(tx.paymentMethodId) : undefined
+      paymentMethod: tx.paymentMethodId ? paymentMethodsMap.get(tx.paymentMethodId) : undefined,
+      attachments: tx.attachmentIds ? tx.attachmentIds.split(',').map(id => attachmentsMap.get(id)) as Omit<Attachment, 'id' | 'createdAt' | 'updatedAt'>[] : []
     }));
   },
 
@@ -156,7 +176,7 @@ export const TransactionService = {
     year: number, 
     month: number, 
     pagination?: { page?: number; pageSize?: number, ignorePagination?: boolean }
-  ): Promise<PaginatedTransactionsWithTagsAndPaymentMethods> {
+  ): Promise<PaginatedTransactionsWithDetailInfo> {
     if (month < 1 || month > 12) {
       throw new Error('月份必须在1-12之间');
     }
@@ -169,7 +189,7 @@ export const TransactionService = {
     const result = await transactionRepo.findByMonth(accountId, year, month, pagination);
     
     // 使用封装的方法添加标签和支付方式信息
-    const transactionsWithTagsAndPaymentMethods = await this.enrichTransactionsWithTagsAndPaymentMethods(result);
+    const transactionsWithTagsAndPaymentMethods = await this.enrichTransactionsWithDetailInfo(result);
     
     return {
       items: transactionsWithTagsAndPaymentMethods,
@@ -193,7 +213,7 @@ export const TransactionService = {
     year: number, 
     month: number, 
     pagination?: PaginationParams
-  ): Promise<PaginatedTransactionsWithTagsAndPaymentMethods> {
+  ): Promise<PaginatedTransactionsWithDetailInfo> {
     // 参数校验
     if (month < 1 || month > 12) {
       throw new Error('月份必须在1-12之间');
@@ -211,7 +231,7 @@ export const TransactionService = {
     });
     
     // 使用封装的方法添加标签和支付方式信息
-    const transactionsWithTagsAndPaymentMethods = await this.enrichTransactionsWithTagsAndPaymentMethods(result);
+    const transactionsWithTagsAndPaymentMethods = await this.enrichTransactionsWithDetailInfo(result);
     
     // 按周分组
     
@@ -352,30 +372,22 @@ export const TransactionService = {
    * @param transactionId - 交易ID
    * @returns 交易详情（包含标签和支付方式信息）
    */
-  async getTransactionDetail(transactionId: string): Promise<TransactionWithTagAndPaymentMethod | undefined> {
+  async getTransactionDetail(transactionId: string): Promise<TransactionWithDetailInfo | undefined> {
     const transaction = await transactionRepo.findById(transactionId);
     
     if (!transaction) {
       return undefined;
     }
     
-    // 获取标签信息
-    let tag: Omit<NewTag, 'id' | 'createdAt' | 'updatedAt'> | undefined;
-    if (transaction.tagId) {
-      tag = await tagRepo.findById(transaction.tagId);
-    }
+    const enrichedTransactions = await this.enrichTransactionsWithDetailInfo({
+      items: [transaction],
+      total: 1,
+      page: 1,
+      pageSize: 1,
+      totalPages: 1
+    });
     
-    // 获取支付方式信息
-    let paymentMethod:  Omit<PaymentMethod, 'id' | 'createdAt' | 'updatedAt'> | undefined;
-    if (transaction.paymentMethodId) {
-      paymentMethod = await paymentMethodRepo.findById(transaction.paymentMethodId);
-    }
-    
-    return {
-      ...transaction,
-      tag,
-      paymentMethod
-    };
+    return enrichedTransactions[0];
   },
 
   /**
@@ -396,6 +408,8 @@ export const TransactionService = {
     if (updateData.description && updateData.description.length > 200) {
       throw new Error('交易描述不能超过200个字符');
     }
+
+    console.log("更新交易数据:", updateData);
     
     return await transactionRepo.update(transactionId, updateData);
   },
@@ -633,7 +647,7 @@ export const TransactionService = {
       endDate
     );
 
-    return await this.enrichTransactionsWithTagsAndPaymentMethods({
+    return await this.enrichTransactionsWithDetailInfo({
       items: result,
       total: result.length, 
       page: 1,

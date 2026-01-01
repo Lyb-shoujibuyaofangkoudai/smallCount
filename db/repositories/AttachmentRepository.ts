@@ -1,11 +1,11 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import { and, eq, desc, inArray, count } from 'drizzle-orm';
-import { attachments, transactions, accounts } from '../schema';
+import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { withPagination, type PaginatedResult, type PaginationParams } from '../db-helper';
+import { accounts, attachments, transactions } from '../schema';
 import { BaseRepository } from './BaseRepository';
-import { withPagination, type PaginationParams, type PaginatedResult } from '../db-helper';
 
-type Attachment = InferSelectModel<typeof attachments>;
-type NewAttachment = InferInsertModel<typeof attachments>;
+export type Attachment = InferSelectModel<typeof attachments>;
+export type NewAttachment = InferInsertModel<typeof attachments>;
 
 export class AttachmentRepository extends BaseRepository<Attachment> {
   constructor() {
@@ -13,14 +13,24 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
   }
 
   // 创建附件记录
-  async create(data: Omit<NewAttachment, 'id' | 'uploadedAt'>): Promise<Attachment> {
+  async create(data: Omit<NewAttachment, 'id' | 'updatedAt'>): Promise<Attachment> {
     const id = this.generateId();
     const [newAttachment] = await this.db.insert(attachments).values({
       ...data,
       id,
-      uploadedAt: new Date()
+      updatedAt: new Date()
     }).returning();
     return newAttachment;
+  }
+
+  // 批量创建附件记录
+  async createBatch(data: Omit<NewAttachment, 'id' | 'updatedAt'>[]): Promise<Attachment[]> {
+    const newAttachments = await this.db.insert(attachments).values(data.map(item => ({
+      ...item,
+      id: this.generateId(),
+      updatedAt: new Date()
+    }))).returning();
+    return newAttachments;
   }
 
   // 通过ID获取附件
@@ -35,7 +45,16 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
     return rows[0]?.attachment;
   }
 
-  // 获取交易的所有附件
+  // 通过ids获取相关附件
+  async findByIds(ids: string[]): Promise<Attachment[]> {
+    const rows = await this.db
+      .select({ attachment: attachments })
+      .from(attachments)
+      .where(inArray(attachments.id, ids));
+    return rows.map(r => r.attachment);
+  }
+
+  // 获取单个交易的所有附件
   async findByTransaction(transactionId: string, userId: string): Promise<Attachment[]> {
     const rows = await this.db
       .select({ attachment: attachments })
@@ -43,7 +62,7 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
       .innerJoin(transactions, eq(attachments.transactionId, transactions.id))
       .innerJoin(accounts, eq(transactions.accountId, accounts.id))
       .where(and(eq(attachments.transactionId, transactionId), eq(accounts.userId, userId)))
-      .orderBy(({ attachment }) => desc(attachment.uploadedAt));
+      .orderBy(({ attachment }) => desc(attachment.updatedAt));
     return rows.map(r => r.attachment);
   }
 
@@ -60,7 +79,7 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
       .innerJoin(transactions, eq(attachments.transactionId, transactions.id))
       .innerJoin(accounts, eq(transactions.accountId, accounts.id))
       .where(whereCondition)
-      .orderBy(({ attachment }) => desc(attachment.uploadedAt));
+      .orderBy(({ attachment }) => desc(attachment.updatedAt));
 
     // 构建总数查询
     const countQuery = this.db
@@ -110,7 +129,7 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
   async update(
     id: string,
     userId: string,
-    data: Partial<Omit<NewAttachment, 'id' | 'transactionId' | 'uploadedAt'>>
+    data: Partial<Omit<NewAttachment, 'id' | 'transactionId' | 'updatedAt'>>
   ): Promise<Attachment | undefined> {
     const canUpdate = await this.hasAccess(id, userId);
     if (!canUpdate) return undefined;
@@ -177,7 +196,7 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
       .innerJoin(transactions, eq(attachments.transactionId, transactions.id))
       .innerJoin(accounts, eq(transactions.accountId, accounts.id))
       .where(eq(accounts.userId, userId))
-      .orderBy(({ attachment }) => desc(attachment.uploadedAt))
+      .orderBy(({ attachment }) => desc(attachment.updatedAt))
       .limit(limit);
     return rows.map(r => r.attachment);
   }
@@ -190,7 +209,7 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
       .innerJoin(transactions, eq(attachments.transactionId, transactions.id))
       .innerJoin(accounts, eq(transactions.accountId, accounts.id))
       .where(and(eq(accounts.userId, userId), eq(attachments.fileType, fileType)))
-      .orderBy(({ attachment }) => desc(attachment.uploadedAt));
+      .orderBy(({ attachment }) => desc(attachment.updatedAt));
     return rows.map(r => r.attachment);
   }
 
@@ -202,3 +221,4 @@ export class AttachmentRepository extends BaseRepository<Attachment> {
 
 // 添加sql和sum导入以支持聚合查询
 import { sql, sum } from 'drizzle-orm';
+

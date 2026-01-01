@@ -33,6 +33,20 @@ export const AttachmentService = {
     
     return await attachmentRepo.create(attachmentData);
   },
+  /**
+   * 批量创建附件记录
+   * @param attachmentData - 附件数据数组
+   * @returns 创建的附件对象数组
+   */
+  async createBatch(attachmentData: Omit<NewAttachment, 'id' | 'uploadedAt'>[]) {
+    // 业务规则校验
+    if (!attachmentData || attachmentData.length === 0) {
+      throw new Error('附件数据不能为空');
+    }
+    
+    // 批量创建附件记录
+    return await attachmentRepo.createBatch(attachmentData);
+  },
 
   /**
    * 通过ID获取附件详情

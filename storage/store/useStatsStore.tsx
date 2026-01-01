@@ -1,7 +1,7 @@
 import { Tag } from "@/db/repositories/TagRepository";
 import {
     TransactionService,
-    TransactionWithTagAndPaymentMethod,
+    TransactionWithDetailInfo,
 } from "@/db/services/TransactionService";
 import Big from "big.js";
 import { createAppStore } from "../index";
@@ -223,7 +223,7 @@ interface WeeklyStats {
   endDate: Date;
   income: number;
   expense: number;
-  transactions: TransactionWithTagAndPaymentMethod[];
+  transactions: TransactionWithDetailInfo[];
 }
 
 // 定义月度统计数据接口
@@ -426,7 +426,7 @@ function processMonthlyTransactions(data: { months: any[] }): StatsChartData {
 }
 
 function processWeeklyTransactions(
-  data: WeeklyStats[] | TransactionWithTagAndPaymentMethod[]
+  data: WeeklyStats[] | TransactionWithDetailInfo[]
 ): StatsChartData {
   // 初始化统计数据
   const chartData: StatsChartData = {
@@ -492,7 +492,7 @@ function processWeeklyTransactions(
       chartData.income.data.yAxis = weeklyStatsArray.map((week) => week.income);
 
       // 合并所有周的交易记录进行标签统计
-      const allTransactions: TransactionWithTagAndPaymentMethod[] = [];
+      const allTransactions: TransactionWithDetailInfo[] = [];
       weeklyStatsArray.forEach((week) => {
         allTransactions.push(...week.transactions);
       });
@@ -539,7 +539,7 @@ function processWeeklyTransactions(
       });
     } else {
       // 处理TransactionWithTagAndPaymentMethod数组（回退逻辑）
-      const transactions = data as TransactionWithTagAndPaymentMethod[];
+      const transactions = data as TransactionWithDetailInfo[];
 
       // 遍历交易数据
       transactions.forEach((transaction) => {

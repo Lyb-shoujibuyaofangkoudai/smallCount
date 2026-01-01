@@ -53,6 +53,7 @@ export class AccountService {
    * @returns 更新后的账户信息
    */
   static async updateAccount(accountId: string, updateData: any) {
+    console.log("更新账户:", accountId, updateData);
     return await accountRepo.update(accountId, updateData);
   }
 

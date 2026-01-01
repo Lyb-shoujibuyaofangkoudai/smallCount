@@ -2,6 +2,7 @@
 
 // 导入数据库实体类型
 import type { Account, NewAccount } from "@/db/repositories/AccountRepository";
+import { NewAttachment } from "@/db/repositories/AttachmentRepository";
 import type { PaymentMethod } from "@/db/repositories/PaymentMethodRepository";
 import type { Tag } from "@/db/repositories/TagRepository";
 import type { Transaction } from "@/db/repositories/TransactionRepository";
@@ -110,6 +111,17 @@ export interface DataActions {
     paymentMethod: Partial<PaymentMethod>
   ) => Promise<void>;
   deletePaymentMethod: (id: string) => Promise<void>;
+
+  // 票据图片操作
+  addTicketImagesToTransaction: (
+    ticketImages: Omit<NewAttachment, "id" | "createdAt" | "updatedAt">[],
+    transactionId: string,
+  ) => Promise<Transaction | null>;
+  // updateTicketImage: (
+  //   id: string,
+  //   ticketImage: Partial<TicketImage>
+  // ) => Promise<void>;
+  // deleteTicketImage: (id: string) => Promise<void>;
 
   // 用户操作
   loadCurrentUser: () => Promise<void>;

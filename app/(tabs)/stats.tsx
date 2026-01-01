@@ -74,7 +74,7 @@ export default function StatsScreen() {
         {/* 周期切换 Segment */}
         <View className="w-32">
           <SegmentedControl
-            values={["周", "月"]}
+            values={["每周", "每月"]}
             selectedIndex={periodIndex}
             onChange={handlePeriodChange}
             containerClassName="h-9"

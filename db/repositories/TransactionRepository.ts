@@ -198,8 +198,6 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     });
   }
 
-  // 批量创建交易记录 （需要事务处理 ：更新余额）
- 
 
   // 获取某月交易列表（按账户、年、月过滤）
   async findByMonth(
@@ -483,29 +481,16 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     });
   }
 
-  // 删除交易（包含余额更新）
-  async delete(id: string) {
-    return await this.db.transaction(async (tx) => {
-      // 1. 获取交易记录
-      const transaction = await tx.query.transactions.findFirst({
-        where: eq(transactions.id, id),
-      });
-
-      if (!transaction) {
-        throw new Error(`交易记录不存在: ${id}`);
-      }
-
-      // 2. 恢复交易对账户余额的影响
-      await this._reverseTransactionImpact(tx, transaction);
-
-      // 3. 删除交易记录
-      const [deleted] = await tx
-        .delete(transactions)
-        .where(eq(transactions.id, id))
-        .returning();
-
-      return deleted;
-    });
+  /**
+   * 批量更新交易记录（包含余额更新）
+   * @param ids - 交易记录ID数组
+   * @returns 更新的交易记录数组
+   */
+  async updateBatch(
+    ids: string[],
+    data: Partial<Omit<NewTransaction, "id" | "createdAt" | "updatedAt">>
+  ) {
+    
   }
 
   // 根据ID查找交易
@@ -597,5 +582,33 @@ export class TransactionRepository extends BaseRepository<Transaction> {
       .where(and(...conditions));
     return result;
   }
-  
+
+  /**
+   * 删除交易记录（包含余额更新）
+   * @param id - 交易记录ID
+   * @returns 删除的交易记录
+   */
+  async delete(id: string) {
+    return await this.db.transaction(async (tx) => {
+      // 1. 获取交易记录
+      const transaction = await tx.query.transactions.findFirst({
+        where: eq(transactions.id, id),
+      });
+
+      if (!transaction) {
+        throw new Error(`交易记录不存在: ${id}`);
+      }
+
+      // 2. 恢复交易对账户余额的影响
+      await this._reverseTransactionImpact(tx, transaction);
+
+      // 3. 删除交易记录
+      const [deleted] = await tx
+        .delete(transactions)
+        .where(eq(transactions.id, id))
+        .returning();
+
+      return deleted;
+    });
+  }
 }

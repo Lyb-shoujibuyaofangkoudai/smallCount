@@ -8,8 +8,8 @@ import { Account } from "@/db/repositories/AccountRepository";
 import { PaymentMethod } from "@/db/repositories/PaymentMethodRepository";
 import { NewTag } from "@/db/repositories/TagRepository";
 import {
-  TransactionService,
-  TransactionWithTagAndPaymentMethod,
+    TransactionService,
+    TransactionWithDetailInfo,
 } from "@/db/services/TransactionService";
 import useDataStore from "@/storage/store/useDataStore";
 import { exportDataToXlsx } from "@/utils/utils";
@@ -135,7 +135,7 @@ export default function DataExportPage() {
     // 按账户分组交易数据
     const transactionsByAccount: Record<
       string,
-      { account: Account; transactions: TransactionWithTagAndPaymentMethod[] }
+      { account: Account; transactions: TransactionWithDetailInfo[] }
     > = {};
 
     // 初始化分组对象，为每个选中的账户创建空数组

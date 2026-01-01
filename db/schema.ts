@@ -173,7 +173,11 @@ export const attachments = sqliteTable("attachments", {
   fileUrl: text("file_url").notNull(), // 文件存储 URL 地址
   fileType: text("file_type"), // 文件类型（如 image/jpeg）
   fileSize: integer("file_size"), // 文件大小（字节）
-  uploadedAt: integer("uploaded_at", { mode: "timestamp" }).default(
+  createdAt: integer("created_at", { mode: "timestamp" }).default(
     sql`(strftime('%s', 'now'))`
-  ), // 上传时间
+  ), // 创建时间
+  updatedAt: integer("updated_at", { mode: "timestamp" }).default(
+    sql`(strftime('%s', 'now'))`
+  ), // 最后更新时间
+
 });

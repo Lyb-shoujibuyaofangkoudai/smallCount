@@ -5,18 +5,23 @@ import useDataStore from '@/storage/store/useDataStore';
 import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import PaymentMethodModal from './PaymentMethodModal';
+import TicketImageModal, { TicketImage } from './TicketImageModal';
 
 interface ToolbarProps {
   date: string;
   onDateChange?: (date: string) => void;
   onPaymentMethodChange?: (method: PaymentMethod) => void;
   payMethod?: PaymentMethod;
+  onTicketImagesChange?: (images: TicketImage[]) => void;
+  initialTicketImages?: TicketImage[];
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMethodChange, payMethod }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMethodChange, payMethod, onTicketImagesChange, initialTicketImages = [] }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
+  const [showTicketImageModal, setShowTicketImageModal] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | NewPaymentMethod | null>(null);
+  const [ticketImages, setTicketImages] = useState<TicketImage[]>(initialTicketImages);
   const { paymentMethods } = useDataStore();
   
   useEffect(() => {
@@ -30,6 +35,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
         }
     }
   }, [payMethod]);
+
+  useEffect(() => {
+    setTicketImages(initialTicketImages);
+  }, [initialTicketImages]);
 
 
 
@@ -76,6 +85,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
     setShowPaymentMethodModal(false);
   };
 
+  const handleTicketImagePress = () => {
+    setShowTicketImageModal(true);
+  };
+
+  const handleTicketImageConfirm = (images: TicketImage[]) => {
+    console.log('查看选择的图片：', images);
+    setTicketImages(images);
+    setShowTicketImageModal(false);
+    
+    if (onTicketImagesChange) {
+      onTicketImagesChange(images);
+    }
+  };
+
+  const handleTicketImageClose = () => {
+    setShowTicketImageModal(false);
+  };
+
   return (
     <>
       <View className="flex-row gap-3 px-4 py-2 bg-background border-b border-border">
@@ -93,9 +120,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
             💰 支付方式：{selectedPaymentMethod ? selectedPaymentMethod.name : ''}
           </Text>
         </TouchableOpacity>
-       {/* TODO: 票据功能 */}
-        <TouchableOpacity className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border">
-          <Text className="text-xs text-textSecondary">📷 票据</Text>
+        <TouchableOpacity 
+          className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border"
+          onPress={handleTicketImagePress}
+        >
+          <Text className="text-xs text-textSecondary">
+            📷 票据{ticketImages.length > 0 ? ` (${ticketImages.length})` : ''}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -115,6 +146,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
         onSelect={handlePaymentMethodSelect}
         selectedId={selectedPaymentMethod?.id}
         data={paymentMethods}
+      />
+
+      {/* 票据图片弹窗 */}
+      <TicketImageModal
+        visible={showTicketImageModal}
+        onClose={handleTicketImageClose}
+        onConfirm={handleTicketImageConfirm}
+        initialImages={ticketImages}
+        maxImages={9}
       />
     </>
   );

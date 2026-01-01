@@ -1,10 +1,10 @@
 import { APP_NAME } from "@/constants/data";
 import { Account } from "@/db/repositories/AccountRepository";
-import { TransactionWithTagAndPaymentMethod } from "@/db/services/TransactionService";
+import { TransactionWithDetailInfo } from "@/db/services/TransactionService";
 import {
-  documentDirectory,
-  EncodingType,
-  writeAsStringAsync,
+    documentDirectory,
+    EncodingType,
+    writeAsStringAsync,
 } from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Alert } from "react-native";
@@ -44,7 +44,7 @@ export function getFirstCharToUpper(str: unknown): string {
 export async function exportDataToXlsx(
   transactionsByAccount: Record<
     string,
-    { account: Account; transactions: TransactionWithTagAndPaymentMethod[] }
+    { account: Account; transactions: TransactionWithDetailInfo[] }
   >,
   workSheetHeadData?: string[][],
   fileName = `${APP_NAME}-账单数据.xlsx`
