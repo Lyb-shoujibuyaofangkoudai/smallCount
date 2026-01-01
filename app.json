@@ -58,6 +58,12 @@
             ]
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "此功能的使用需要允许访问您的相册或相机。"
+        }
       ]
     ],
     "experiments": {

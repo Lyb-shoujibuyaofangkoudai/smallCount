@@ -94,9 +94,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
           </Text>
         </TouchableOpacity>
        {/* TODO: 票据功能 */}
-        {/* <TouchableOpacity className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border">
+        <TouchableOpacity className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border">
           <Text className="text-xs text-textSecondary">📷 票据</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </View>
 
       {/* 日期选择弹窗 */}
