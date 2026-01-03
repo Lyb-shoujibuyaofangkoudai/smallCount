@@ -93,7 +93,7 @@ export const transactions = sqliteTable("transactions", {
   amount: real("amount").notNull(), // 交易金额（正数）
   notes: text("notes"), // 备注
   description: text("description"), // 交易描述（如：午餐、工资）
-  
+  fromAccountId: text("from_account_id").references(() => accounts.id), // 转账来源账户 ID（仅转账）
   transferAccountId: text("transfer_account_id").references(() => accounts.id), // 转账目标账户 ID（仅转账）
   transactionDate: integer("transaction_date", { mode: "timestamp" }).notNull(), // 交易日期（Unix 时间戳）
   location: text("location"), // 交易地点
