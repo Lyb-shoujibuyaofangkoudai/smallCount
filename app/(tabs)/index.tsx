@@ -60,6 +60,7 @@ const DetailList = ({
     <View className="mx-4">
       <SwipeableRow
         className="mb-2 rounded-lg overflow-hidden"
+        onPress={() => router.navigate(`/transaction/${item.id}`)}
         actions={[
           {
             label: "编辑",

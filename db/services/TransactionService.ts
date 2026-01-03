@@ -22,6 +22,8 @@ export interface TransactionWithDetailInfo extends Transaction {
   tag?: Omit<NewTag, 'id' | 'createdAt' | 'updatedAt'>;
   paymentMethod?: Omit<PaymentMethod, 'id' | 'createdAt' | 'updatedAt'>;
   attachments?: Omit<Attachment, 'id' | 'createdAt' | 'updatedAt'>[];
+  fromAccount?: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>;
+  transferAccount?: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>;
 }
 
 // 定义每周统计数据接口

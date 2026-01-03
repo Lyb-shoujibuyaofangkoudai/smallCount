@@ -1,0 +1,501 @@
+import { CURRENCIES } from "@/constants/data";
+import { useTheme } from "@/context/ThemeContext";
+import { TransactionWithDetailInfo } from "@/db/services/TransactionService";
+import useDataStore from "@/storage/store/useDataStore";
+import { addAlphaToColor } from "@/theme/colors";
+import { getFirstCharToUpper } from "@/utils/utils";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { formatDate } from "../../utils/format";
+
+// 模拟数据 - 实际项目中应从数据库获取
+const mockTransaction = {
+  id: "e73ac0f3-f409-4385-aede-0df6045a4fe5",
+  tagId: "6451500e-d722-4df2-acef-314cd1862ff7",
+  paymentMethodId: "005727ee-63e7-451c-96a8-87ce9b7992db",
+  accountId: "6fbf15fe-b6ef-4a2b-bbb8-1d7c7df2bbdb",
+  attachmentIds: null,
+  type: "expense" as const, // expense, income, transfer
+  amount: 200,
+  notes: "",
+  description: "服饰美容支出",
+  fromAccountId: null,
+  transferAccountId: null,
+  transactionDate: new Date("2026-01-01T00:00:00.000Z"),
+  location: "上海市南京西路店",
+  receiptImageUrl: null,
+  isRecurring: false,
+  recurringRule: null,
+  isConfirmed: true,
+  createdAt: new Date("2026-01-01T12:56:48.000Z"),
+  updatedAt: new Date("2026-01-01T13:45:28.000Z"),
+  tag: {
+    id: "6451500e-d722-4df2-acef-314cd1862ff7",
+    accountIds: null,
+    name: "服饰美容",
+    color: "#fd79a8",
+    icon: "shirt",
+    type: "expense",
+    isDefault: true,
+    createdAt: new Date("2025-12-03T10:30:39.000Z"),
+    updatedAt: new Date("2025-12-03T10:30:39.000Z"),
+  },
+  paymentMethod: {
+    id: "005727ee-63e7-451c-96a8-87ce9b7992db",
+    accountIds: null,
+    name: "现金",
+    icon: "cash-outline",
+    isDefault: false,
+    createdAt: new Date("2025-12-03T10:30:39.000Z"),
+    updatedAt: new Date("2025-12-03T10:30:39.000Z"),
+  },
+  account: {
+    id: "6fbf15fe-b6ef-4a2b-bbb8-1d7c7df2bbdb",
+    name: "招商信用卡",
+    accountNumber: "8890",
+    type: "credit_card",
+    icon: "card-outline",
+    color: "#3b82f6",
+  },
+  fromAccount: null,
+  transferAccount: null,
+  attachments: [],
+};
+
+// TODO: 转账类型待完善
+const mockTransferTransaction = {
+  ...mockTransaction,
+  id: "2",
+  type: "transfer" as const,
+  amount: 5000.0,
+  description: "10月账单还款",
+  tag: {
+    id: "2",
+    accountIds: null,
+    name: "信用卡还款",
+    color: "#3b82f6",
+    icon: "card-outline",
+    type: "expense",
+    isDefault: false,
+    createdAt: new Date("2025-12-03T10:30:39.000Z"),
+    updatedAt: new Date("2025-12-03T10:30:39.000Z"),
+  },
+  fromAccount: {
+    id: "2",
+    name: "中国银行",
+    accountNumber: "4403",
+    type: "bank",
+    icon: "cash-outline",
+    color: "#3b82f6",
+  },
+  transferAccount: {
+    id: "1",
+    name: "招商银行",
+    accountNumber: "8890",
+    type: "credit_card",
+    icon: "card-outline",
+    color: "#0284c7",
+  },
+};
+
+
+
+
+export default function TransactionDetailScreen() {
+  const { id } = useLocalSearchParams();
+  const { transactions, activeAccount,deleteTransaction } = useDataStore();
+  const transaction = transactions.find((t) => t.id === id);
+  const router = useRouter();
+  const { isDarkMode, theme } = useTheme();
+
+  const Head = () => (
+  <View className="flex-row items-center justify-between px-5 py-4 sticky top-0 z-10 bg-background/85 backdrop-blur-md">
+        <TouchableOpacity
+          className="w-10 h-10 rounded-full items-center justify-center bg-neutral-100 dark:bg-neutral-800"
+          onPress={() => router.back()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={20}
+            color={isDarkMode ? "white" : "black"}
+          />
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold text-text">交易详情</Text>
+        <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center bg-neutral-100 dark:bg-neutral-800">
+        </TouchableOpacity>
+      </View>
+)
+
+  // 添加防御性检查，确保transaction对象存在
+  if (!transaction) {
+    return (
+      <SafeAreaView className="flex-1">
+        <Head />
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-lg font-semibold text-text">交易数据不存在</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const getThemeClass = () => {
+    switch (transaction.type) {
+      case "income":
+        return "theme-income";
+      case "transfer":
+        return "theme-transfer";
+      case "expense":
+      default:
+        return "theme-expense";
+    }
+  };
+
+  const getTransactionTypeText = () => {
+    switch (transaction.type) {
+      case "income":
+        return "收入";
+      case "transfer":
+        return "转账";
+      case "expense":
+      default:
+        return "支出";
+    }
+  };
+
+  const getTagTextColorClass = () => {
+    switch (transaction.type) {
+      case "income":
+        return "text-green-600 dark:text-green-400";
+      case "transfer":
+        return "text-blue-600 dark:text-blue-400";
+      case "expense":
+      default:
+        return "text-neutral-800 dark:text-neutral-200";
+    }
+  };
+
+  const handleDeleteTransaction = (transaction: TransactionWithDetailInfo) => {
+    Alert.alert(
+      "确认删除",
+      `确定删除交易记录${transaction.transactionDate.toLocaleDateString()}的${transaction!.tag!.name} 吗？`,
+      [
+        { text: "取消", style: "cancel" },
+        {
+          text: "删除",
+          style: "destructive",
+          onPress: () => deleteTransaction(transaction.id),
+        },
+      ]
+    );
+  }
+
+
+  return (
+    <SafeAreaView className="flex-1">
+      {/* 导航栏 */}
+      <Head />
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        {/* 交易信息区 */}
+        <View className={`px-5 py-6 items-center ${getThemeClass()}`}>
+          {/* 分类徽章 */}
+          <View
+            className={`flex-row items-center gap-2 px-4 py-2 rounded-full mb-4 ${transaction.type === "income" ? "bg-green-50 dark:bg-green-900/30" : transaction.type === "transfer" ? "bg-blue-50 dark:bg-blue-900/30" : "bg-white dark:bg-neutral-800"} shadow-sm`}
+          >
+            <Ionicons
+              name={transaction.tag?.icon as any}
+              size={24}
+              className={getTagTextColorClass()}
+              color={transaction.tag?.color || theme.colors.primary}
+            />
+            <Text className={`text-sm font-semibold ${getTagTextColorClass()}`}>
+              {transaction.tag?.name}
+            </Text>
+          </View>
+
+          {/* 交易描述 */}
+          <Text className="text-2xl font-bold text-text mb-2">
+            {transaction.description}
+          </Text>
+
+          {/* 金额显示 */}
+          <View className="flex-row items-start justify-center mb-2">
+            <Text
+              className={`text-xl font-semibold text-text/60 mr-1 mt-1 ${transaction.type === "income" ? "text-green-600 dark:text-green-400" : transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" : "text-text"}`}
+            >
+              {CURRENCIES[activeAccount?.currency || "CNY"].char}
+            </Text>
+            <Text
+              className={`text-5xl font-bold ${transaction.type === "income" ? "text-green-600 dark:text-green-400" : transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" : "text-text"}`}
+            >
+              {transaction.amount.toFixed(2)}
+            </Text>
+          </View>
+
+          {/* 交易日期和类型 */}
+          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
+            {formatDate(transaction.transactionDate, "time")} ·{" "}
+            {getTransactionTypeText()}
+          </Text>
+        </View>
+
+        {/* 交易详情卡片 */}
+        <View className="px-5 mb-6">
+          <View className="bg-card rounded-2xl shadow-md overflow-hidden">
+            {/* 支付账户 */}
+            <View className="flex-row items-center px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+              <View
+                className="w-10 h-10 rounded-lg items-center justify-center mr-4"
+                style={{
+                  backgroundColor: addAlphaToColor(theme.colors.primary, 0.7),
+                }}
+              >
+                <Text className="text-white text-lg font-bold">
+                  {getFirstCharToUpper(activeAccount?.name)}
+                </Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1">
+                  {transaction.type === "income" ? "入账账户" : "支付账户"}
+                </Text>
+                <Text className="text-base font-medium text-text">
+                  {activeAccount?.name}
+                </Text>
+              </View>
+            </View>
+
+            {/* 支付方式 */}
+            <View className="flex-row items-center px-5 py-4">
+              <View
+                className="w-10 h-10 rounded-lg items-center justify-center mr-4"
+                style={{
+                  backgroundColor: addAlphaToColor(theme.colors.primary, 0.7),
+                }}
+              >
+                <Ionicons
+                  name={transaction.paymentMethod?.icon as any}
+                  size={20}
+                  color="white"
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1">
+                  {transaction.type === "income" ? "交易方式" : "支付方式"}
+                </Text>
+                <Text className="text-base font-medium text-text">
+                  {transaction.paymentMethod?.name}
+                </Text>
+              </View>
+            </View>
+
+            {/* 地点 - 仅支出类型显示 */}
+            {transaction.type === "expense" && transaction.location && (
+              <View className="flex-row items-center px-5 py-4 border-t border-neutral-200 dark:border-neutral-700">
+                <View
+                  className="w-10 h-10 rounded-lg items-center justify-center mr-4"
+                  style={{
+                    backgroundColor: addAlphaToColor(theme.colors.primary, 0.7),
+                  }}
+                >
+                  <Ionicons
+                    name="location-outline"
+                    size={20}
+                    color={isDarkMode ? "white" : "black"}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-1">
+                    地点
+                  </Text>
+                  <Text className="text-base font-medium text-text">
+                    {transaction.location}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* TODO: 转账流程 - 仅转账类型显示 */}
+        {transaction.type === "transfer" &&
+          transaction.fromAccount &&
+          transaction.transferAccount && (
+            <View className="px-5 mb-6">
+              <View className="bg-card rounded-2xl shadow-md p-6 flex-row items-start justify-between">
+                {/* 转出账户 */}
+                <View className="w-1/3 items-center">
+                  <View
+                    className="w-13 h-13 p-2 rounded-lg items-center justify-center mb-2"
+                    style={{
+                      backgroundColor: `${transaction.fromAccount?.color}20`,
+                    }}
+                  >
+                    <Ionicons
+                      name={transaction.fromAccount?.icon as any}
+                      size={28}
+                      color={theme.colors.text}
+                    />
+                  </View>
+                  <Text className="text-sm font-semibold text-text">
+                    {transaction.fromAccount?.name}
+                  </Text>
+                  <Text className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {transaction.fromAccount?.type === "bank"
+                      ? "储蓄卡"
+                      : transaction.fromAccount?.type === "credit_card"
+                        ? "信用卡"
+                        : "其他"}{" "}
+                    {transaction.fromAccount?.accountNumber}
+                  </Text>
+                </View>
+
+                {/* 箭头 */}
+                <View className="flex-1 items-center pt-5">
+                  <View className="w-full h-0.5 bg-neutral-200 dark:bg-neutral-700 relative">
+                    <View className="absolute right-0 top-0 transform -translate-y-1/2">
+                      <Ionicons
+                        name="arrow-forward"
+                        size={12}
+                        color="#6b7280"
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {/* 转入账户 */}
+                <View className="w-1/3 items-center">
+                  <View
+                    className="w-13 h-13 p-2 rounded-lg items-center justify-center mb-2"
+                    style={{
+                      backgroundColor: `${transaction.transferAccount?.color}20`,
+                    }}
+                  >
+                    <Ionicons
+                      name={transaction.transferAccount?.icon as any}
+                      size={28}
+                      color={theme.colors.text}
+                    />
+                  </View>
+                  <Text className="text-sm font-semibold text-text">
+                    {transaction.transferAccount?.name}
+                  </Text>
+                  <Text className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {transaction.transferAccount?.type === "bank"
+                      ? "储蓄卡"
+                      : transaction.transferAccount?.type === "credit_card"
+                        ? "信用卡"
+                        : "其他"}{" "}
+                    {transaction.transferAccount?.accountNumber}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+        {/* 备注和附件 */}
+        <View className="px-5 mb-6">
+          <View className="bg-card rounded-2xl shadow-md overflow-hidden">
+            {/* 描述 */}
+            <View className="p-5">
+              <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                描述
+              </Text>
+              {transaction.description ? (
+                <Text className="text-base text-text leading-relaxed">
+                  {transaction.description}
+                </Text>
+              ) : (
+                <Text className="text-base text-neutral-500 dark:text-neutral-400">
+                  没有描述
+                </Text>
+              )}
+            </View>
+
+            {/* 备注 */}
+            <View className="p-5 border-t border-neutral-200 dark:border-neutral-700">
+              <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                备注
+              </Text>
+              {transaction.notes ? (
+                <Text className="text-base text-text leading-relaxed">
+                  {transaction.notes}
+                </Text>
+              ) : (
+                <Text className="text-base text-neutral-500 dark:text-neutral-400">
+                  没有备注
+                </Text>
+              )}
+            </View>
+
+            {/* 附件 */}
+            <View className="p-5 border-t border-neutral-200 dark:border-neutral-700">
+              <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                附件
+              </Text>
+              {Array.isArray(transaction?.attachments) &&
+              transaction.attachments.length > 0 ? (
+                transaction.attachments.map((item: any) => (
+                  <View key={item.id}>
+                    <View className="rounded-xl overflow-hidden h-36 bg-neutral-100 dark:bg-neutral-800 relative mb-4">
+                      <Image
+                        source={{ uri: item?.fileUrl }}
+                        className="w-full h-full object-cover"
+                      />
+                      <View className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full">
+                        <Text className="text-xs text-white">
+                          {item?.fileName}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Text className="text-base text-neutral-500 dark:text-neutral-400">
+                  没有附件
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+      {/* 底部操作栏 */}
+      <View className="p-5 bg-background">
+        <View className="flex-row gap-3">
+          <TouchableOpacity
+            onPress={() => handleDeleteTransaction(transaction)}
+            className="flex-1 h-12 rounded-full items-center justify-center bg-card shadow-lg border border-red-200 dark:border-red-900/30"
+          >
+            <Text className="text-base font-semibold text-red-600 dark:text-red-400">
+              删除
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-[2] h-12 rounded-full items-center justify-center bg-black dark:bg-white shadow-lg flex-row gap-2"
+            onPress={() => router.push(`/transaction/edit/${id}`)}
+          >
+            <Ionicons
+              name="create-outline"
+              size={18}
+              color={isDarkMode ? "black" : "white"}
+            />
+            <Text className="text-base font-semibold text-white dark:text-black">
+              编辑
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}

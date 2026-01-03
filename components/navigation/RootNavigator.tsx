@@ -77,10 +77,23 @@ export const RootNavigator = () => {
                 name="modal"
                 options={{ presentation: "modal", title: "Modal", headerShown: false }}
               />
-              <Stack.Screen
+              {/* <Stack.Screen
                 name="transaction/[...rest]"
                 options={{ presentation: "modal", title: "添加交易", headerShown: false }}
+              /> */}
+              <Stack.Screen
+                name="transaction/edit/[id]"
+                options={{ presentation: "modal", title: "编辑交易", headerShown: false }}
               />
+              <Stack.Screen
+                name="transaction/add"
+                options={{ presentation: "modal", title: "添加交易", headerShown: false }}
+              />
+              <Stack.Screen
+                name="transaction/[id]"
+                options={{ presentation: "modal", title: "交易详情", headerShown: false }}
+              />
+
               <Stack.Screen
                 name="importScreen"
                 options={{ presentation: "modal", title: "数据管理", headerShown: false }}

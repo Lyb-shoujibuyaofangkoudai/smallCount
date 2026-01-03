@@ -169,6 +169,14 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
       const newYear = selectedYear - 1;
       if (!minDateObj || newYear >= minDateObj.year) {
         setSelectedYear(newYear);
+        // 修复：切换年份时，检查新年份中当前选中的月份是否可用
+        if (minDateObj && newYear === minDateObj.year && selectedMonth < minDateObj.month) {
+          setSelectedMonth(minDateObj.month);
+        }
+        // 同时检查新年份的最大可用月份
+        if (maxDateObj && newYear === maxDateObj.year && selectedMonth > maxDateObj.month) {
+          setSelectedMonth(maxDateObj.month);
+        }
       }
     } else {
       const newYearBasis = yearBasis - 12;
@@ -184,6 +192,14 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
       const newYear = selectedYear + 1;
       if (!maxDateObj || newYear <= maxDateObj.year) {
         setSelectedYear(newYear);
+        // 修复：切换年份时，检查新年份中当前选中的月份是否可用
+        if (maxDateObj && newYear === maxDateObj.year && selectedMonth > maxDateObj.month) {
+          setSelectedMonth(maxDateObj.month);
+        }
+        // 同时检查新年份的最小可用月份
+        if (minDateObj && newYear === minDateObj.year && selectedMonth < minDateObj.month) {
+          setSelectedMonth(minDateObj.month);
+        }
       }
     } else {
       const newYearBasis = yearBasis + 12;
@@ -208,6 +224,17 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
   const handleYearSelect = (year: number) => {
     if (isYearAllowed(year)) {
       setSelectedYear(year);
+      // 修复：选择年份时，确保选中的月份在新年份中是可用的
+      let updatedMonth = selectedMonth;
+      // 检查新年份的最小可用月份
+      if (minDateObj && year === minDateObj.year && updatedMonth < minDateObj.month) {
+        updatedMonth = minDateObj.month;
+      }
+      // 检查新年份的最大可用月份
+      if (maxDateObj && year === maxDateObj.year && updatedMonth > maxDateObj.month) {
+        updatedMonth = maxDateObj.month;
+      }
+      setSelectedMonth(updatedMonth);
       setMode('month'); // 选中后自动切回月份选择
     }
   };

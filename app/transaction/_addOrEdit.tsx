@@ -11,13 +11,21 @@ import { NewTag } from "@/db/repositories/TagRepository";
 import { AttachmentService } from "@/db/services/AttachmentService";
 import { TransactionService } from "@/db/services/TransactionService";
 import useDataStore from "@/storage/store/useDataStore";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-export default function AddTransactionScreen() {
+interface TransactionFormProps {
+  mode: "add" | "edit";
+  transactionId?: string; // 仅在 edit 模式下需要
+}
+
+export default function AddTransactionScreen({
+  mode,
+  transactionId,
+}: TransactionFormProps) {
   const router = useRouter();
   const {
     tags,
@@ -29,18 +37,16 @@ export default function AddTransactionScreen() {
     updateTransaction,
     activeAccount,
     switchActiveAccount,
-    currentUser
+    currentUser,
   } = useDataStore();
-
-  const {
-    rest: [str, id],
-  } = useLocalSearchParams<{ rest: string[] }>();
+  const isEdit = mode === "edit";
+  const id = transactionId || "";
 
   const [type, setType] = useState<"expense" | "income">("expense");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
 
-  const [isEdit, setIsEdit] = useState(false);
+  //   const [isEdit, setIsEdit] = useState(false);
   // 使用数据存储获取标签状态
 
   // 根据类型过滤标签
@@ -74,11 +80,11 @@ export default function AddTransactionScreen() {
   // 7. 添加票据图片状态管理
   const [ticketImages, setTicketImages] = useState<TicketImage[]>([]);
 
-  useEffect(() => {
-    if (str !== "add") {
-      setIsEdit(true);
-    }
-  }, [str]);
+  //   useEffect(() => {
+  //     if (str !== "add") {
+  //       setIsEdit(true);
+  //     }
+  //   }, [str]);
 
   useEffect(() => {
     if (id) {
@@ -121,21 +127,31 @@ export default function AddTransactionScreen() {
             const foundPaymentMethod = paymentMethods.find(
               (method) => method.id === transactionDetail.paymentMethodId
             );
-            console.log("找到支付方式", foundPaymentMethod,transactionDetail.paymentMethodId,paymentMethods);
+            console.log(
+              "找到支付方式",
+              foundPaymentMethod,
+              transactionDetail.paymentMethodId,
+              paymentMethods
+            );
             if (foundPaymentMethod) {
               setSelectedPaymentMethod(foundPaymentMethod);
             }
           }
 
           // 设置票据图片
-          if (transactionDetail.attachments && transactionDetail.attachments.length > 0) {
-            const initialTicketImages = transactionDetail.attachments.map(attachment => ({
-              uri: attachment.fileUrl,
-              fileUrl: attachment.fileUrl,
-              fileName: attachment.fileName,
-              fileType: attachment.fileType || '',
-              fileSize: attachment.fileSize || 0
-            }));
+          if (
+            transactionDetail.attachments &&
+            transactionDetail.attachments.length > 0
+          ) {
+            const initialTicketImages = transactionDetail.attachments.map(
+              (attachment) => ({
+                uri: attachment.fileUrl,
+                fileUrl: attachment.fileUrl,
+                fileName: attachment.fileName,
+                fileType: attachment.fileType || "",
+                fileSize: attachment.fileSize || 0,
+              })
+            );
             setTicketImages(initialTicketImages);
           } else {
             setTicketImages([]);
@@ -162,7 +178,6 @@ export default function AddTransactionScreen() {
   const handleDelete = () => {
     setAmount((prev) => prev.slice(0, -1));
   };
-
 
   const handleSubmit = async () => {
     try {
@@ -198,7 +213,7 @@ export default function AddTransactionScreen() {
       console.log("selectedAccount", selectedAccount);
       console.log("selectedCategory", selectedCategory);
 
-      // 构建交易数据
+      // TODO: 构建交易数据
       const transactionData = {
         type: type,
         amount: parseFloat(amount),
@@ -210,6 +225,7 @@ export default function AddTransactionScreen() {
         transactionDate: new Date(selectedDate),
         paymentMethodId: (selectedPaymentMethod as PaymentMethod).id,
         notes: note || "",
+        fromAccountId: null, // 简化版本不支持转账
         transferAccountId: null, // 简化版本不支持转账
         location: null, // 简化版本不支持位置
         receiptImageUrl: null, // 简化版本不支持收据图片
@@ -221,14 +237,17 @@ export default function AddTransactionScreen() {
 
       if (isEdit && id) {
         // 编辑模式：更新交易
-        console.log('正在更新交易:', id,transactionData);
+        console.log("正在更新交易:", id, transactionData);
         await updateTransaction(id, transactionData);
-        console.log('先删除该交易的所有旧附件',currentUser);
+        console.log("先删除该交易的所有旧附件", currentUser);
 
         if (currentUser) {
           // 先删除该交易的所有旧附件
-          await AttachmentService.deleteAttachmentsByTransaction(id, currentUser.id);
-          
+          await AttachmentService.deleteAttachmentsByTransaction(
+            id,
+            currentUser.id
+          );
+
           // 然后添加新的附件
           if (ticketImages.length > 0) {
             await addTicketImagesToTransaction(
@@ -250,7 +269,6 @@ export default function AddTransactionScreen() {
         });
       } else {
         // 创建模式：新增交易
-        console.log("正在创建交易:", transactionData);
         const newTransaction = await addTransaction(transactionData);
 
         if (newTransaction && ticketImages.length) {
@@ -278,8 +296,10 @@ export default function AddTransactionScreen() {
       // 返回上一页
       router.back();
     } catch (error) {
-
-      console.error(isEdit ? "点击修改交易更新交易失败:" : "创建交易失败:", error);
+      console.error(
+        isEdit ? "点击修改交易更新交易失败:" : "创建交易失败:",
+        error
+      );
 
       // 显示错误提示
       Toast.show({

@@ -602,9 +602,15 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
     try {
       const attachmentImgs = await AttachmentService.createBatch(ticketImagesData);
       if (attachmentImgs.length) {
-        return await TransactionService.updateTransaction(transactionId, {
+        const updatedTransaction = await TransactionService.updateTransaction(transactionId, {
           attachmentIds: attachmentImgs.map((img) => img.id).join(","),
         });
+        const newTransaction = await TransactionService.getTransactionDetail(transactionId);
+        console.log("更新后的交易单:", newTransaction);
+        if (newTransaction) {
+          set({ transactions: get().transactions.map((tx) => (tx.id === transactionId ? newTransaction : tx)) });
+        }
+        return updatedTransaction
       }
       return null;
     } catch (error) {

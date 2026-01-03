@@ -1,7 +1,11 @@
-import React, { useRef } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-import Reanimated, { interpolate, SharedValue, useAnimatedStyle } from 'react-native-reanimated';
+import React, { useRef } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import Reanimated, {
+  interpolate,
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 export interface SwipeAction {
   label: string;
@@ -17,6 +21,7 @@ interface Props {
   threshold?: number;
   style?: any; // 支持自定义样式
   className?: string; // 支持Tailwind CSS类名
+  onPress?: () => void; // 用户点击回调
 }
 
 // 单个按钮组件
@@ -32,7 +37,7 @@ const ActionButton = ({
   totalCount: number;
 }) => {
   const btnWidth = action.width || 80;
-  
+
   // 使用 Reanimated 实现视差动画
   const animatedStyle = useAnimatedStyle(() => {
     // 这里的 progress.value 是从 0 (关闭) 到 1 (打开)
@@ -55,10 +60,12 @@ const ActionButton = ({
       */}
       <TouchableOpacity
         activeOpacity={0.7}
-        className={`flex-1 justify-center items-center ${action.className || 'bg-gray-400'}`}
+        className={`flex-1 justify-center items-center ${action.className || "bg-gray-400"}`}
         onPress={action.onPress}
       >
-        <Text className={`text-base font-medium ${action.textClassName || 'text-white'}`}>
+        <Text
+          className={`text-base font-medium ${action.textClassName || "text-white"}`}
+        >
           {action.label}
         </Text>
       </TouchableOpacity>
@@ -66,7 +73,14 @@ const ActionButton = ({
   );
 };
 
-const SwipeableRow: React.FC<Props> = ({ children, actions = [], threshold = 60, style, className }) => {
+const SwipeableRow: React.FC<Props> = ({
+  children,
+  actions = [],
+  threshold = 60,
+  style,
+  className,
+  onPress,
+}) => {
   // 注意：ReanimatedSwipeable 的 ref 类型定义比较宽泛，这里用 any 或者查阅特定类型
   const swipeableRef = useRef<any>(null);
 
@@ -76,7 +90,7 @@ const SwipeableRow: React.FC<Props> = ({ children, actions = [], threshold = 60,
 
   // renderRightActions 接收 SharedValue
   const renderRightActions = (
-    progress: SharedValue<number>, 
+    progress: SharedValue<number>,
     _drag: SharedValue<number>
   ) => {
     if (actions.length === 0) return null;
@@ -91,7 +105,7 @@ const SwipeableRow: React.FC<Props> = ({ children, actions = [], threshold = 60,
               onPress: () => {
                 close();
                 action.onPress();
-              }
+              },
             }}
             index={index}
             progress={progress}
@@ -111,9 +125,15 @@ const SwipeableRow: React.FC<Props> = ({ children, actions = [], threshold = 60,
         rightThreshold={threshold}
         renderRightActions={renderRightActions}
         overshootRight={false} // 禁止右侧拉过头
-        containerStyle={{ overflow: 'visible' }} // 修复 Web 端可能的裁剪问题
+        containerStyle={{ overflow: "visible" }} // 修复 Web 端可能的裁剪问题
       >
-        {children}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={onPress}
+          className="w-full"
+        >
+          {children}
+        </TouchableOpacity>
       </Swipeable>
     </View>
   );

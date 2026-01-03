@@ -467,7 +467,7 @@ export default function CalendarWidget({
   const [key, setKey] = useState(0);
   useEffect(() => {
     setKey(Date.now());
-  }, [isDarkMode]);
+  }, [isDarkMode, current]);
 
   return (
     <Calendar

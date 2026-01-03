@@ -7,6 +7,7 @@ import type { PaymentMethod } from "@/db/repositories/PaymentMethodRepository";
 import type { Tag } from "@/db/repositories/TagRepository";
 import type { Transaction } from "@/db/repositories/TransactionRepository";
 import type { User } from "@/db/repositories/UserRepository";
+import { TransactionWithDetailInfo } from "@/db/services/TransactionService";
 
 // 数据存储状态接口
 export interface DataState {
@@ -21,7 +22,7 @@ export interface DataState {
   activeAccount: Account | null;
 
   // 交易相关
-  transactions: Transaction[];
+  transactions: TransactionWithDetailInfo[];
   transactionsForDate: {
     title: string;
     total: {
