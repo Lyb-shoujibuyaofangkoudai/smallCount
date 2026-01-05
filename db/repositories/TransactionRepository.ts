@@ -37,31 +37,38 @@ export class TransactionRepository extends BaseRepository<Transaction> {
         newBalance = currentBalance.plus(transactionAmount);
       } else {
         if (!transaction.transferAccountId) return;
-        const fromAccount = await tx.query.accounts.findFirst({
-          where: eq(accounts.id, transaction.accountId),
-        });
-        const toAccount = await tx.query.accounts.findFirst({
-          where: eq(accounts.id, transaction.transferAccountId!),
-        });
 
-        if (fromAccount) {
-          const currentBalance = new Big(fromAccount.balance || 0);
-          const transactionAmount = new Big(transaction.amount);
-          const newBalance = currentBalance.minus(transactionAmount);
-          await tx
-            .update(accounts)
-            .set({ balance: newBalance.toNumber() })
-            .where(eq(accounts.id, transaction.accountId));
-        }
+        const transactionAmount = new Big(transaction.amount);
 
-        if (toAccount) {
-          const currentBalance = new Big(toAccount.balance || 0);
-          const transactionAmount = new Big(transaction.amount);
-          const newBalance = currentBalance.plus(transactionAmount);
-          await tx
-            .update(accounts)
-            .set({ balance: newBalance.toNumber() })
-            .where(eq(accounts.id, transaction.transferAccountId!));
+        // 根据 accountId 判断是转出交易还是转入交易
+        // 如果 accountId 等于 fromAccountId，则是转出交易，只更新转出账户
+        // 如果 accountId 等于 transferAccountId，则是转入交易，只更新转入账户
+        if (transaction.accountId === transaction.fromAccountId) {
+          // 这是转出交易，转出账户扣款
+          const fromAccount = await tx.query.accounts.findFirst({
+            where: eq(accounts.id, transaction.accountId),
+          });
+          if (fromAccount) {
+            const currentBalance = new Big(fromAccount.balance || 0);
+            const newBalance = currentBalance.minus(transactionAmount);
+            await tx
+              .update(accounts)
+              .set({ balance: newBalance.toNumber() })
+              .where(eq(accounts.id, transaction.accountId));
+          }
+        } else if (transaction.accountId === transaction.transferAccountId) {
+          // 这是转入交易，转入账户入账
+          const toAccount = await tx.query.accounts.findFirst({
+            where: eq(accounts.id, transaction.transferAccountId!),
+          });
+          if (toAccount) {
+            const currentBalance = new Big(toAccount.balance || 0);
+            const newBalance = currentBalance.plus(transactionAmount);
+            await tx
+              .update(accounts)
+              .set({ balance: newBalance.toNumber() })
+              .where(eq(accounts.id, transaction.transferAccountId!));
+          }
         }
         return;
       }
@@ -135,7 +142,7 @@ export class TransactionRepository extends BaseRepository<Transaction> {
 
   // 创建交易 (需要事务处理：更新余额)
   async createTransactionWithBalanceUpdate(
-    data: Omit<NewTransaction, "id" | "createdAt" | "updatedAt" >
+    data: Omit<NewTransaction, "id" | "createdAt" | "updatedAt">
   ): Promise<Transaction> {
     return await this.db.transaction(async (tx) => {
       const id = this.generateId();
@@ -185,31 +192,40 @@ export class TransactionRepository extends BaseRepository<Transaction> {
         if (!data.transferAccountId) {
           throw new Error("转账交易必须指定转入账户");
         }
+
+        const transactionAmount = new Big(data.amount);
+
+        // 获取转出账户和转入账户
         const fromAccount = await tx.query.accounts.findFirst({
           where: eq(accounts.id, data.accountId),
-        });
+        }); 
         const toAccount = await tx.query.accounts.findFirst({
           where: eq(accounts.id, data.transferAccountId),
         });
 
-        const transactionAmount = new Big(data.amount);
-
-        if (fromAccount) {
-          const fromBalance = new Big(fromAccount.balance || 0);
-          const newFromBalance = fromBalance.minus(transactionAmount);
-          await tx
-            .update(accounts)
-            .set({ balance: newFromBalance.toNumber() })
-            .where(eq(accounts.id, data.accountId));
-        }
-
-        if (toAccount) {
-          const toBalance = new Big(toAccount.balance || 0);
-          const newToBalance = toBalance.plus(transactionAmount);
-          await tx
-            .update(accounts)
-            .set({ balance: newToBalance.toNumber() })
-            .where(eq(accounts.id, data.transferAccountId!));
+        // 根据 accountId 判断是转出交易还是转入交易
+        // 如果 accountId 等于 fromAccountId，则是转出交易，只更新转出账户
+        // 如果 accountId 等于 transferAccountId，则是转入交易，只更新转入账户
+        if (data.accountId === data.fromAccountId) {
+          // 这是转出交易，转出账户扣款
+          if (fromAccount) {
+            const fromBalance = new Big(fromAccount.balance || 0);
+            const newFromBalance = fromBalance.minus(transactionAmount);
+            await tx
+              .update(accounts)
+              .set({ balance: newFromBalance.toNumber() })
+              .where(eq(accounts.id, data.accountId));
+          }
+        } else if (data.accountId === data.transferAccountId) {
+          // 这是转入交易，转入账户入账
+          if (toAccount) {
+            const toBalance = new Big(toAccount.balance || 0);
+            const newToBalance = toBalance.plus(transactionAmount);
+            await tx
+              .update(accounts)
+              .set({ balance: newToBalance.toNumber() })
+              .where(eq(accounts.id, data.transferAccountId!));
+          }
         }
       }
 
@@ -219,15 +235,15 @@ export class TransactionRepository extends BaseRepository<Transaction> {
 
   /**
    *  批量创建交易记录 （需要事务处理 ：更新余额）如果需要将数据插入到不同账户，则传入的data数据中需要包含accountId字段
-   * @param dataArray 
-   * @returns 
+   * @param dataArray
+   * @returns
    */
   async createBatchTransactionsWithBalanceUpdate(
     dataArray: Omit<NewTransaction, "id" | "createdAt" | "updatedAt">[]
   ): Promise<Transaction[]> {
     return await this.db.transaction(async (tx) => {
       // 1. 为每条交易记录生成ID并准备插入数据
-      const transactionsToInsert = dataArray.map(data => ({
+      const transactionsToInsert = dataArray.map((data) => ({
         ...data,
         id: this.generateId(),
         updatedAt: new Date(),
@@ -241,36 +257,45 @@ export class TransactionRepository extends BaseRepository<Transaction> {
 
       // 3. 按账户分组，计算每个账户的余额变化
       const accountBalanceChanges = new Map<string, Big>();
-      
+
       for (const transaction of newTransactions) {
         const accountId = transaction.accountId;
         const amount = new Big(transaction.amount);
-        
+
         // 初始化账户余额变化（如果不存在）
         if (!accountBalanceChanges.has(accountId)) {
           accountBalanceChanges.set(accountId, new Big(0));
         }
-        
+
         // 根据交易类型更新余额变化
         if (transaction.type === "expense") {
-          accountBalanceChanges.set(accountId, accountBalanceChanges.get(accountId)!.minus(amount));
+          accountBalanceChanges.set(
+            accountId,
+            accountBalanceChanges.get(accountId)!.minus(amount)
+          );
         } else if (transaction.type === "income") {
-          accountBalanceChanges.set(accountId, accountBalanceChanges.get(accountId)!.plus(amount));
+          accountBalanceChanges.set(
+            accountId,
+            accountBalanceChanges.get(accountId)!.plus(amount)
+          );
         }
         // 转账类型需要更复杂的处理，这里暂时不处理
       }
 
       // 4. 一次性更新所有账户的余额
-      for (const [accountId, balanceChange] of accountBalanceChanges.entries()) {
+      for (const [
+        accountId,
+        balanceChange,
+      ] of accountBalanceChanges.entries()) {
         // 获取当前账户余额
         const account = await tx.query.accounts.findFirst({
           where: eq(accounts.id, accountId),
         });
-        
+
         if (account) {
           const currentBalance = new Big(account.balance || 0);
           const newBalance = currentBalance.plus(balanceChange);
-          
+
           // 更新账户余额
           await tx
             .update(accounts)
@@ -282,7 +307,6 @@ export class TransactionRepository extends BaseRepository<Transaction> {
       return newTransactions;
     });
   }
-
 
   // 获取某月交易列表（按账户、年、月过滤）
   async findByMonth(
@@ -372,7 +396,7 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     // 1. 确定时间范围
     let startDate: Date;
     let endDate: Date;
-    
+
     if (month) {
       // 指定了月份，获取该月的数据
       startDate = new Date(year, month - 1, 1, 0, 0, 0); // 月份从0开始，所以减1
@@ -439,7 +463,10 @@ export class TransactionRepository extends BaseRepository<Transaction> {
         amount: sql<number>`TOTAL(${transactions.amount})`,
       })
       .from(transactions)
-      .leftJoin(paymentMethods, eq(transactions.paymentMethodId, paymentMethods.id))
+      .leftJoin(
+        paymentMethods,
+        eq(transactions.paymentMethodId, paymentMethods.id)
+      )
       .where(
         and(
           eq(transactions.accountId, accountId),
@@ -450,54 +477,64 @@ export class TransactionRepository extends BaseRepository<Transaction> {
       .orderBy(desc(sql<number>`TOTAL(${transactions.amount})`));
 
     // 5. 补全月份数据
-    const fullData = month ? {
-      // 单个月的数据
-      month: month,
-      income: basicStatsResults[0]?.income || 0,
-      expense: basicStatsResults[0]?.expense || 0,
-      balance: basicStatsResults[0]?.balance || 0,
-      tagStats: tagStatsResults.filter(item => item.month === month).map(item => ({
-        id: item.tagId,
-        name: item.tagName,
-        color: item.tagColor,
-        icon: item.tagIcon,
-        type: item.tagType,
-        amount: item.amount,
-      })),
-      paymentMethodStats: paymentMethodStatsResults.filter(item => item.month === month).map(item => ({
-        id: item.paymentMethodId,
-        name: item.paymentMethodName,
-        icon: item.paymentMethodIcon,
-        amount: item.amount,
-      }))
-    } : {
-      // 整年的数据
-      months: Array.from({ length: 12 }, (_, i) => {
-        const m = i + 1;
-        const found = basicStatsResults.find((r) => r.month === m);
+    const fullData = month
+      ? {
+          // 单个月的数据
+          month: month,
+          income: basicStatsResults[0]?.income || 0,
+          expense: basicStatsResults[0]?.expense || 0,
+          balance: basicStatsResults[0]?.balance || 0,
+          tagStats: tagStatsResults
+            .filter((item) => item.month === month)
+            .map((item) => ({
+              id: item.tagId,
+              name: item.tagName,
+              color: item.tagColor,
+              icon: item.tagIcon,
+              type: item.tagType,
+              amount: item.amount,
+            })),
+          paymentMethodStats: paymentMethodStatsResults
+            .filter((item) => item.month === month)
+            .map((item) => ({
+              id: item.paymentMethodId,
+              name: item.paymentMethodName,
+              icon: item.paymentMethodIcon,
+              amount: item.amount,
+            })),
+        }
+      : {
+          // 整年的数据
+          months: Array.from({ length: 12 }, (_, i) => {
+            const m = i + 1;
+            const found = basicStatsResults.find((r) => r.month === m);
 
-        return {
-          month: m,
-          income: found?.income || 0,
-          expense: found?.expense || 0,
-          balance: found?.balance || 0,
-          tagStats: tagStatsResults.filter(item => item.month === m).map(item => ({
-            id: item.tagId,
-            name: item.tagName,
-            color: item.tagColor,
-            icon: item.tagIcon,
-            type: item.tagType,
-            amount: item.amount,
-          })),
-          paymentMethodStats: paymentMethodStatsResults.filter(item => item.month === m).map(item => ({
-            id: item.paymentMethodId,
-            name: item.paymentMethodName,
-            icon: item.paymentMethodIcon,
-            amount: item.amount,
-          }))
+            return {
+              month: m,
+              income: found?.income || 0,
+              expense: found?.expense || 0,
+              balance: found?.balance || 0,
+              tagStats: tagStatsResults
+                .filter((item) => item.month === m)
+                .map((item) => ({
+                  id: item.tagId,
+                  name: item.tagName,
+                  color: item.tagColor,
+                  icon: item.tagIcon,
+                  type: item.tagType,
+                  amount: item.amount,
+                })),
+              paymentMethodStats: paymentMethodStatsResults
+                .filter((item) => item.month === m)
+                .map((item) => ({
+                  id: item.paymentMethodId,
+                  name: item.paymentMethodName,
+                  icon: item.paymentMethodIcon,
+                  amount: item.amount,
+                })),
+            };
+          }),
         };
-      })
-    };
 
     return fullData;
   }
@@ -574,9 +611,7 @@ export class TransactionRepository extends BaseRepository<Transaction> {
   async updateBatch(
     ids: string[],
     data: Partial<Omit<NewTransaction, "id" | "createdAt" | "updatedAt">>
-  ) {
-    
-  }
+  ) {}
 
   // 根据ID查找交易
   async findById(id: string) {
@@ -597,12 +632,12 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     accountId: string,
     year: number,
     month?: number,
-    type?: 'income' | 'expense'
+    type?: "income" | "expense"
   ): Promise<number> {
     // 确定时间范围
     let startDate: Date;
     let endDate: Date;
-    
+
     if (month) {
       // 指定了月份，获取该月的数据
       startDate = new Date(year, month - 1, 1, 0, 0, 0);
@@ -616,9 +651,9 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     // 构建查询条件
     const conditions = [
       eq(transactions.accountId, accountId),
-      between(transactions.transactionDate, startDate, endDate)
+      between(transactions.transactionDate, startDate, endDate),
     ];
- 
+
     // 如果指定了交易类型，添加类型过滤
     if (type) {
       conditions.push(eq(transactions.type, type));
@@ -627,11 +662,11 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     // 执行查询
     const result = await this.db
       .select({
-        total: sql<number>`TOTAL(${transactions.amount})`
+        total: sql<number>`TOTAL(${transactions.amount})`,
       })
       .from(transactions)
       .where(and(...conditions));
-      console.log('查询汇总结果:', result);
+    console.log("查询汇总结果:", result);
 
     // 返回统计金额（如果没有数据返回0）
     return result[0]?.total || 0;
@@ -658,9 +693,9 @@ export class TransactionRepository extends BaseRepository<Transaction> {
       inArray(transactions.accountId, accountIds),
       inArray(transactions.tagId, tagIds),
       inArray(transactions.paymentMethodId, paymentMethodIds),
-      between(transactions.transactionDate, startDate, endDate)
+      between(transactions.transactionDate, startDate, endDate),
     ];
-     // 执行查询 
+    // 执行查询
     const result = await this.db
       .select()
       .from(transactions)
