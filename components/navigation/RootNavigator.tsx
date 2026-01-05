@@ -62,6 +62,7 @@ export const RootNavigator = () => {
     "--color-secondary": theme.colors.secondary,
     "--color-success": theme.colors.success,
     "--color-warning": theme.colors.warning,
+    "--color-danger": theme.colors.danger,
   });
 
 

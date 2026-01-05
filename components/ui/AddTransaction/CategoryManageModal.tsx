@@ -11,11 +11,10 @@ import {
   Modal,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -161,20 +160,6 @@ const CategoryManageModal: React.FC<CategoryManageModalProps> = ({
     updateTag
   } = useDataStore()
 
-  // modal会脱离root节点，导致自定义var样式失效，所以需要在modal中包裹一个view
-  const styles = StyleSheet.create({
-    modalContent: {
-      width: "100%",
-      maxHeight: "80%",
-      backgroundColor: theme.colors.card,
-      borderRadius: 20,
-    },
-    header: {
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      backgroundColor: theme.colors.card,
-    },
-  });
   // 重置表单
   const resetForm = () => {
     setEditingId(null);

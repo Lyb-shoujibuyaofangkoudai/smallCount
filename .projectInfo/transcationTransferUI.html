@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>small_count - Modern Transfer Flow</title>
+    <style>
+      /* --- 1. CSS Variables --- */
+      :root {
+        --primary: #3b82f6;
+        --success: #10b981;
+        --danger: #ef4444;
+        --screen-w: 375px;
+        --screen-h: 812px;
+
+        --bg-app: #f2f4f7; /* 稍微冷一点的灰，更有现代感 */
+        --bg-card: #ffffff;
+        --text-main: #111827;
+        --text-sub: #6b7280;
+        --border: #e5e7eb;
+        
+        /* 特殊背景色：用于区分转出转入 */
+        --bg-from-tint: #fef2f2; /* 极淡红 */
+        --bg-to-tint: #f0fdf4;   /* 极淡绿 */
+        --border-from: #fee2e2;
+        --border-to: #dcfce7;
+
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+        --key-bg: #ffffff;
+        --key-bg-active: #f3f4f6;
+    }
+
+      [data-theme="dark"] {
+        --bg-app: #000000;
+        --bg-card: #1c1c1e;
+        --text-main: #f9fafb;
+        --text-sub: #9ca3af;
+        --border: #27272a;
+
+        --bg-from-tint: rgba(239, 68, 68, 0.1);
+        --bg-to-tint: rgba(16, 185, 129, 0.1);
+        --border-from: rgba(239, 68, 68, 0.2);
+        --border-to: rgba(16, 185, 129, 0.2);
+
+        --key-bg: #2c2c2e;
+        --key-bg-active: #3f3f46;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 0.3s, border-color 0.3s, transform 0.1s;
+      }
+
+      body {
+        background-color: #121212;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* --- Device Frame --- */
+      .device-mockup {
+        width: var(--screen-w);
+        height: var(--screen-h);
+        background: var(--bg-card);
+        border-radius: 40px;
+        position: relative;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        border: 8px solid #1a1a1a;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 30px;
+        background: #000;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+        z-index: 999;
+      }
+
+      /* --- 顶部区域 --- */
+      .header {
+        padding: 50px 20px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .close-btn {
+        color: var(--text-sub);
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      /* 类型切换器 */
+      .segment-control {
+        background: var(--bg-app);
+        padding: 4px;
+        border-radius: 12px;
+        display: flex;
+        gap: 2px;
+      }
+
+      .segment-item {
+        padding: 6px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-sub);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .segment-item.active {
+        background: var(--bg-card);
+        color: var(--text-main);
+        box-shadow: var(--shadow-sm);
+      }
+
+      /* --- 金额显示区 --- */
+      .amount-wrapper {
+        padding: 30px 20px 40px;
+        text-align: center;
+      }
+
+      .amount-label {
+        font-size: 13px;
+        color: var(--text-sub);
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+      }
+
+      .amount-value {
+        font-size: 44px;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: -1px;
+      }
+
+      /* --- 核心转账交互区 (A -> B Row) --- */
+      .transfer-container {
+        flex: 1;
+        background: var(--bg-app);
+        border-top-left-radius: 32px;
+        border-top-right-radius: 32px;
+        padding: 32px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      /* A -> B 双卡片布局 */
+      .flow-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        gap: 12px;
+      }
+
+      /* 单个账户卡片 */
+      .account-card {
+        flex: 1;
+        height: 140px; /* 固定高度保持整齐 */
+        border-radius: 20px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .account-card:active {
+        transform: scale(0.96);
+      }
+
+      /* 左侧：转出样式 */
+      .account-card.from {
+        background: var(--bg-from-tint);
+        border-color: var(--border-from);
+      }
+      
+      /* 右侧：转入样式 */
+      .account-card.to {
+        background: var(--bg-to-tint);
+        border-color: var(--border-to);
+      }
+
+      /* 标签 (Out/In) */
+      .flow-tag {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 6px;
+        margin-bottom: 4px;
+      }
+      .from .flow-tag { color: var(--danger); background: rgba(239,68,68,0.1); }
+      .to .flow-tag { color: var(--success); background: rgba(16,185,129,0.1); }
+
+      /* 图标 */
+      .acc-icon-lg {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: white;
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .acc-name-lg {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+        text-align: center;
+        line-height: 1.3;
+      }
+
+      /* 中间交换按钮 (悬浮) */
+      .swap-btn {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background: var(--bg-card);
+        border-radius: 50%;
+        box-shadow: var(--shadow-float);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        z-index: 10;
+        cursor: pointer;
+        border: 4px solid var(--bg-app); /* 形成镂空效果 */
+      }
+      
+      .swap-btn:active i {
+        transform: rotate(180deg);
+        transition: transform 0.3s;
+      }
+
+      /* 底部摘要信息 */
+      .summary-box {
+        margin-top: auto; /* 推到底部 */
+        background: var(--bg-card);
+        padding: 16px 20px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .summary-icon {
+        width: 20px;
+        height: 20px;
+        background: var(--bg-app);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .summary-text {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.5;
+      }
+
+      .summary-highlight {
+        color: var(--text-main);
+        font-weight: 600;
+      }
+
+      /* 图标背景色 */
+      .bg-wx { background: #07c160; }
+      .bg-ali { background: #1677ff; }
+      .bg-bank { background: #ef4444; }
+      .bg-cash { background: #f59e0b; }
+
+      /* --- 键盘区域 --- */
+      .num-pad {
+        background: var(--bg-card);
+        padding-bottom: 30px;
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+        border-top: 1px solid var(--border);
+      }
+
+      .num-keys {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .action-keys {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .key {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--text-main);
+        cursor: pointer;
+      }
+      
+      .key:active { background: var(--key-bg-active); }
+
+      .key-done {
+        flex: 1;
+        background: var(--text-main); /* 黑色/深色确认键，更高级 */
+        color: var(--bg-card);
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: 600;
+        margin: 10px;
+        border-radius: 12px;
+      }
+      
+      .key-date {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--text-sub);
+        border-bottom: 1px solid var(--border);
+        border-left: 1px solid var(--border);
+      }
+
+      /* Icons */
+      svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .icon-xs { width: 14px; height: 14px; }
+    </style>
+  </head>
+  <body>
+
+    <!-- 外部深色模式切换 -->
+    <button onclick="toggleTheme()" style="position:absolute; top:20px; z-index:100; padding:8px 16px; border-radius:8px; border:none; background:#333; color:fff; cursor:pointer;">
+        Toggle Theme
+    </button>
+
+    <div class="device-mockup">
+      <div class="notch"></div>
+      
+      <!-- 1. Header -->
+      <div class="header">
+        <div class="close-btn">取消</div>
+        <div class="segment-control">
+          <div class="segment-item">支出</div>
+          <div class="segment-item">收入</div>
+          <div class="segment-item active">转账</div>
+        </div>
+        <div style="width: 30px"></div> <!-- 占位 -->
+      </div>
+
+      <!-- 2. Amount Display -->
+      <div class="amount-wrapper">
+        <div class="amount-label">转账金额</div>
+        <div class="amount-value" id="main-amount">¥ 0.00</div>
+      </div>
+
+      <!-- 3. Transfer A -> B Row UI -->
+      <div class="transfer-container">
+        
+        <!-- A -> B Flow Row -->
+        <div class="flow-row">
+            
+            <!-- A: From -->
+            <div class="account-card from" id="card-from" onclick="cycleAccount('from')">
+                <div class="flow-tag">转出 FROM</div>
+                <div class="acc-icon-lg bg-wx" id="icon-from">微</div>
+                <div class="acc-name-lg" id="name-from">微信零钱</div>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="swap-btn" onclick="swapAccounts()">
+                <svg viewBox="0 0 24 24" style="width:18px; height:18px;">
+                    <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/>
+                </svg>
+            </div>
+
+            <!-- B: To -->
+            <div class="account-card to" id="card-to" onclick="cycleAccount('to')">
+                <div class="flow-tag">转入 TO</div>
+                <div class="acc-icon-lg bg-bank" id="icon-to">招</div>
+                <div class="acc-name-lg" id="name-to">招商银行</div>
+            </div>
+
+        </div>
+
+        <!-- 4. Bottom Summary (Requirement) -->
+        <div class="summary-box">
+            <svg class="summary-icon icon-xs" viewBox="0 0 24 24" style="background:none; color:var(--text-sub);">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <div class="summary-text" id="summary-text">
+                <span class="summary-highlight" id="sum-from">微信零钱</span> 
+                向 
+                <span class="summary-highlight" id="sum-to">招商银行</span> 
+                转入 (转出) 
+                <span class="summary-highlight" id="sum-amt">0.00</span> 元
+            </div>
+        </div>
+
+      </div>
+
+      <!-- 5. Keypad -->
+      <div class="num-pad">
+        <div class="num-keys">
+          <div class="key">7</div>
+          <div class="key">8</div>
+          <div class="key">9</div>
+          <div class="key">4</div>
+          <div class="key">5</div>
+          <div class="key">6</div>
+          <div class="key">1</div>
+          <div class="key">2</div>
+          <div class="key">3</div>
+          <div class="key">.</div>
+          <div class="key">0</div>
+          <div class="key">⌫</div>
+        </div>
+        <div class="action-keys">
+          <div class="key-date">今天</div>
+          <div class="key-done">完成</div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      // 模拟账户数据
+      const accounts = [
+        { name: "微信零钱", icon: "微", bg: "bg-wx" },
+        { name: "招商银行", icon: "招", bg: "bg-bank" },
+        { name: "支付宝", icon: "支", bg: "bg-ali" },
+        { name: "现金钱包", icon: "¥", bg: "bg-cash" }
+      ];
+
+      // 状态
+      let fromIdx = 0;
+      let toIdx = 1;
+      let currentAmount = "";
+
+      // DOM 元素
+      const els = {
+        nameFrom: document.getElementById('name-from'),
+        iconFrom: document.getElementById('icon-from'),
+        nameTo: document.getElementById('name-to'),
+        iconTo: document.getElementById('icon-to'),
+        sumFrom: document.getElementById('sum-from'),
+        sumTo: document.getElementById('sum-to'),
+        sumAmt: document.getElementById('sum-amt'),
+        mainAmt: document.getElementById('main-amount')
+      };
+
+      // 初始化 UI
+      function render() {
+        // 更新 From 卡片
+        const fromAcc = accounts[fromIdx];
+        els.nameFrom.textContent = fromAcc.name;
+        els.iconFrom.textContent = fromAcc.icon;
+        els.iconFrom.className = `acc-icon-lg ${fromAcc.bg}`;
+
+        // 更新 To 卡片
+        const toAcc = accounts[toIdx];
+        els.nameTo.textContent = toAcc.name;
+        els.iconTo.textContent = toAcc.icon;
+        els.iconTo.className = `acc-icon-lg ${toAcc.bg}`;
+
+        // 更新摘要
+        els.sumFrom.textContent = fromAcc.name;
+        els.sumTo.textContent = toAcc.name;
+        
+        let displayVal = currentAmount === "" ? "0.00" : currentAmount;
+        els.mainAmt.textContent = "¥ " + displayVal;
+        els.sumAmt.textContent = displayVal;
+      }
+
+      // 点击切换账户 (模拟选择器)
+      function cycleAccount(type) {
+        if (type === 'from') {
+          fromIdx = (fromIdx + 1) % accounts.length;
+          if (fromIdx === toIdx) fromIdx = (fromIdx + 1) % accounts.length;
+        } else {
+          toIdx = (toIdx + 1) % accounts.length;
+          if (toIdx === fromIdx) toIdx = (toIdx + 1) % accounts.length;
+        }
+        render();
+      }
+
+      // 交换按钮
+      function swapAccounts() {
+        let temp = fromIdx;
+        fromIdx = toIdx;
+        toIdx = temp;
+        
+        // 简单动画反馈
+        const btn = document.querySelector('.swap-btn svg');
+        btn.style.transform = "rotate(180deg)";
+        setTimeout(() => btn.style.transform = "rotate(0deg)", 300);
+        
+        render();
+      }
+
+      // 键盘输入逻辑
+      document.querySelectorAll('.key').forEach(key => {
+        key.addEventListener('click', () => {
+          const val = key.innerText;
+          
+          if (val === '⌫') {
+            currentAmount = currentAmount.slice(0, -1);
+          } else if (val === '.') {
+            if (!currentAmount.includes('.')) currentAmount += '.';
+          } else {
+            // 限制长度
+            if (currentAmount.length < 10) currentAmount += val;
+          }
+          
+          render();
+        });
+      });
+
+      // 主题切换
+      function toggleTheme() {
+        const html = document.documentElement;
+        html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      }
+
+      // 启动
+      render();
+
+    </script>
+  </body>
+</html>

@@ -138,7 +138,7 @@ export const tags = sqliteTable("tags", {
   name: text("name").notNull(), // 标签名称
   color: text("color"), // 标签颜色（十六进制）
   icon: text("icon"), // 图标（emoji 或代码） Ionicons图标
-  type: text("type", { enum: ["expense", "income"] }).notNull(), // 标签类型：支出/收入
+  type: text("type", { enum: ["expense", "income", "transfer"] }).notNull(), // 标签类型：支出/收入/转账
   isDefault: integer("is_default", { mode: "boolean" }).default(false), // 是否默认标签
   createdAt: integer("created_at", { mode: "timestamp" }).default(
     sql`(strftime('%s', 'now'))`

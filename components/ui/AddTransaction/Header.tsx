@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-type TransactionType = "expense" | "income";
+type TransactionType = "expense" | "income" | "transfer";
 
 interface HeaderProps {
   onCancel: () => void;
@@ -20,8 +20,8 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeType,
   title
 }) => {
-  const types: TransactionType[] = ["expense", "income"];
-  const labels = ["支出", "收入"];
+  const types: TransactionType[] = ["expense", "income", "transfer"];
+  const labels = ["支出", "收入", "转账"];
   const { theme,isDarkMode } = useTheme();
   const currentIndex = types.indexOf(currentType);
 

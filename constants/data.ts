@@ -38,6 +38,7 @@ export const DEFAULT_ACCOUNT_NAME = 'default';
 export const DEFAULT_TAGS: {
   expenses: Omit<NewTag, 'id' | 'accountIds' | 'createdAt'>[];
   incomes: Omit<NewTag, 'id' | 'accountIds' | 'createdAt'>[];
+  transfers: Omit<NewTag, 'id' | 'accountIds' | 'createdAt'>[];
 } = {
   // ===========================
   // 支出分类 (Expenses)
@@ -224,7 +225,26 @@ export const DEFAULT_TAGS: {
       type: 'income',   
       isDefault: true,
     }
-  ]
+  ],
+  // ===========================
+  // 转账分类 (Transfer)
+  // ===========================
+  transfers: [
+    {
+      name: '转账收入',
+      icon: 'arrow-up',
+      color: '#20BF6B', // 鲜绿
+      type: 'transfer',  
+      isDefault: true,
+    },
+    {
+      name: '转账支出',
+      icon: 'arrow-down',
+      color: '#45AAF2', // 亮蓝
+      type: 'transfer',  
+      isDefault: true,
+    },
+  ],
 };
 export const PAYMENT_METHODS: PaymentMethod[] = [
   { id: 'wechat', name: '微信支付', icon: 'logo-wechat' },

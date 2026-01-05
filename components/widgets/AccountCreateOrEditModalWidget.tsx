@@ -4,6 +4,7 @@ import { ACCOUNT_TYPES } from "@/db/schema";
 import { AccountDataType } from "@/storage/store/types";
 import useDataStore from "@/storage/store/useDataStore";
 import { Ionicons } from "@expo/vector-icons";
+import Big from "big.js";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -23,12 +24,22 @@ const ACCOUNT_TYPES_ARR = [
   { label: "现金", value: ACCOUNT_TYPES.CASH, icon: "cash-outline" },
   { label: "银行卡", value: ACCOUNT_TYPES.BANK, icon: "card-outline" },
   { label: "信用卡", value: ACCOUNT_TYPES.CREDIT_CARD, icon: "card" },
-  { label: "数字钱包", value: ACCOUNT_TYPES.DIGITAL_WALLET, icon: "wallet-outline" },
-  { label: "投资", value: ACCOUNT_TYPES.INVESTMENT, icon: "trending-up-outline" },
-  { label: "借入/贷出", value: ACCOUNT_TYPES.LOAN, icon: "swap-horizontal-outline" },
-]
-
-
+  {
+    label: "数字钱包",
+    value: ACCOUNT_TYPES.DIGITAL_WALLET,
+    icon: "wallet-outline",
+  },
+  {
+    label: "投资",
+    value: ACCOUNT_TYPES.INVESTMENT,
+    icon: "trending-up-outline",
+  },
+  {
+    label: "借入/贷出",
+    value: ACCOUNT_TYPES.LOAN,
+    icon: "swap-horizontal-outline",
+  },
+];
 
 const PRESET_COLORS = [
   "#FF6B6B",
@@ -40,7 +51,10 @@ const PRESET_COLORS = [
   "#D4A5A5",
   "#9B59B6",
 ];
-export type FormStateBase = Omit<NewAccount, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
+export type FormStateBase = Omit<
+  NewAccount,
+  "id" | "userId" | "createdAt" | "updatedAt"
+>;
 
 interface AccountCreateOrEditModalProps {
   visible: boolean;
@@ -49,7 +63,6 @@ interface AccountCreateOrEditModalProps {
   account?: AccountDataType;
 }
 
-
 export default function AccountCreateOrEditModal({
   visible,
   onClose,
@@ -57,32 +70,39 @@ export default function AccountCreateOrEditModal({
   account,
 }: AccountCreateOrEditModalProps) {
   const { currentUser } = useDataStore();
-  
-  const initialFormState = React.useMemo<AccountDataType>(() => ({
-    userId: currentUser!.id,
-    name: "",
-    type: ACCOUNT_TYPES.CASH,
-    balance: 0,
-    currency: CURRENCIES.CNY.value,
-    icon: "💰",
-    color: PRESET_COLORS[0],
-    accountNumber: "",
-    bankName: "",
-    creditLimit: 0,
-    billingDay: 0,
-    dueDay: 0,
-    isActive: false,
-    notes: "",
-  }), [currentUser]);
+
+  const initialFormState = React.useMemo<AccountDataType>(
+    () => ({
+      userId: currentUser!.id,
+      name: "",
+      type: ACCOUNT_TYPES.CASH,
+      balance: 0,
+      currency: CURRENCIES.CNY.value,
+      icon: "💰",
+      color: PRESET_COLORS[0],
+      accountNumber: "",
+      bankName: "",
+      creditLimit: 0,
+      billingDay: 0,
+      dueDay: 0,
+      isActive: false,
+      notes: "",
+    }),
+    [currentUser]
+  );
 
   const [form, setForm] = useState<AccountDataType>(initialFormState);
   const [loading, setLoading] = useState(false);
-  const [showCurrencyModal, setShowCurrencyModal] = useState(false); // 控制货币选择器显示
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [balanceChange, setBalanceChange] = useState<string>("");
+  const [balanceChangeType, setBalanceChangeType] = useState<"add" | "subtract">("add");
 
   useEffect(() => {
     if (visible) {
       setForm(account || initialFormState);
       setShowCurrencyModal(false);
+      setBalanceChange("");
+      setBalanceChangeType("add");
     }
   }, [visible, account, initialFormState]);
 
@@ -98,15 +118,26 @@ export default function AccountCreateOrEditModal({
 
     setLoading(true);
     try {
+      let finalBalance = new Big(form.balance || 0);
+
+      if (account && balanceChange.trim()) {
+        const changeValue = new Big(balanceChange);
+        if (!isNaN(changeValue.toNumber())) {
+          if (balanceChangeType === "add") {
+            finalBalance = finalBalance.plus(changeValue);
+          } else {
+            finalBalance = finalBalance.minus(changeValue);
+          }
+        }
+      }
+
       const accountData = {
         ...form,
         userId: currentUser!.id,
-        balance: form.balance,
-        currency: form.currency || CURRENCIES.CNY.value, // 确保currency不为undefined
+        balance: finalBalance.toNumber(),
+        currency: form.currency || CURRENCIES.CNY.value,
         creditLimit:
-          form.type === ACCOUNT_TYPES.CREDIT_CARD
-            ? form.creditLimit
-            : null,
+          form.type === ACCOUNT_TYPES.CREDIT_CARD ? form.creditLimit : null,
         billingDay:
           form.type === ACCOUNT_TYPES.CREDIT_CARD && form.billingDay
             ? form.billingDay
@@ -114,13 +145,18 @@ export default function AccountCreateOrEditModal({
         dueDay:
           form.type === ACCOUNT_TYPES.CREDIT_CARD && form.dueDay
             ? form.dueDay
-            : null, 
-        bankName: (form.type === ACCOUNT_TYPES.BANK || form.type === ACCOUNT_TYPES.CREDIT_CARD)
-          ? form.bankName
-          : null,
-        accountNumber: (form.type === ACCOUNT_TYPES.BANK || form.type === ACCOUNT_TYPES.CREDIT_CARD || form.type === ACCOUNT_TYPES.LOAN)
-          ? form.accountNumber
-          : null,
+            : null,
+        bankName:
+          form.type === ACCOUNT_TYPES.BANK ||
+          form.type === ACCOUNT_TYPES.CREDIT_CARD
+            ? form.bankName
+            : null,
+        accountNumber:
+          form.type === ACCOUNT_TYPES.BANK ||
+          form.type === ACCOUNT_TYPES.CREDIT_CARD ||
+          form.type === ACCOUNT_TYPES.LOAN
+            ? form.accountNumber
+            : null,
       };
 
       await onSave(accountData);
@@ -134,7 +170,8 @@ export default function AccountCreateOrEditModal({
   };
 
   // 获取当前选中的货币对象
-  const currentCurrency = form.currency && CURRENCIES[form.currency] || CURRENCIES.CNY;
+  const currentCurrency =
+    (form.currency && CURRENCIES[form.currency]) || CURRENCIES.CNY;
 
   return (
     <Modal
@@ -155,7 +192,9 @@ export default function AccountCreateOrEditModal({
               <TouchableOpacity onPress={onClose}>
                 <Text className="text-text text-base">取消</Text>
               </TouchableOpacity>
-              <Text className="text-text text-lg font-bold">{account ? "编辑账户" : "添加账户"}</Text>
+              <Text className="text-text text-lg font-bold">
+                {account ? "编辑账户" : "添加账户"}
+              </Text>
               <TouchableOpacity onPress={handleSave} disabled={loading}>
                 <Text
                   className={`text-base font-bold ${loading ? "text-gray-400" : "text-primary"}`}
@@ -225,21 +264,52 @@ export default function AccountCreateOrEditModal({
                     placeholderTextColor="#9CA3AF"
                     keyboardType="numeric"
                     value={String(form.balance ?? "")}
+                    editable={!account}
                     onChangeText={(text) => {
-                      updateField("balance", text)
-                      updateField("initialBalance", text)
+                      updateField("balance", text);
+                      updateField("initialBalance", text);
                     }}
                   />
                   <TouchableOpacity
-                    className="bg-gray-500/20 px-2 py-1 rounded"
+                    className="bg-gray-500/20 w-8 h-8 rounded flex items-center justify-center"
                     onPress={() => setShowCurrencyModal(true)}
+                    disabled={!!account}
                   >
-                    {/* 这里显示货币符号，更直观 */}
-                    <Text className="text-text text-md font-bold">
+                    <Text
+                      className={`text-text text-md font-bold ${account ? "opacity-50" : ""}`}
+                    >
                       {currentCurrency.char}
                     </Text>
                   </TouchableOpacity>
                 </View>
+
+                {account && (
+                  <View>
+                    <Text className="text-text text-md mb-1 opacity-70">
+                      调整金额
+                    </Text>
+                    <View className="bg-background flex-row items-center rounded-lg border border-gray-500/20 px-3">
+                      <TextInput
+                        className="flex-1 text-text text-lg font-medium"
+                        placeholder="输入金额"
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="numeric"
+                        value={balanceChange}
+                        onChangeText={(text) => setBalanceChange(text)}
+                      />
+                      <TouchableOpacity
+                        className="bg-gray-500/20 w-8 h-8 rounded flex items-center justify-center"
+                        onPress={() => setBalanceChangeType(prev => prev === "add" ? "subtract" : "add")}
+                      >
+                        <Text
+                          className={`text-text text-md font-bold ${balanceChangeType === "subtract" ? "opacity-50" : ""}`}
+                        >
+                          {balanceChangeType === "add" ? "+" : "-"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
 
               {/* 3. 账户类型 */}

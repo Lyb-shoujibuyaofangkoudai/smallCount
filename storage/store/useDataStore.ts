@@ -1,5 +1,6 @@
 // storage/store/useDataStore.ts
 
+import { Account } from "@/db/repositories/AccountRepository";
 import { NewTag } from "@/db/repositories/TagRepository";
 import { Transaction } from "@/db/repositories/TransactionRepository";
 import { AccountService } from "@/db/services/AccountService";
@@ -23,7 +24,7 @@ const initialState: DataState = {
   accountsLoading: false,
   accountsError: "",
   activeAccountId: "",
-  activeAccount: null,
+  activeAccount: {} as Account,
 
   // 交易相关
   transactions: [],
@@ -73,7 +74,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         console.log("⚠️未找到活跃账户，使用默认账户");
         const defaultAccount = get().accounts.find((a) => a.isDefault);
         console.log("✅默认账户:", defaultAccount);
-        set({ activeAccount: defaultAccount || null });
+        set({ activeAccount: defaultAccount || {} as Account });
         set({ activeAccountId: defaultAccount!.id });
       } else {
         set({ activeAccount: activeAccount || null });
@@ -116,7 +117,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       set({
         accounts: accounts.accounts,
         accountsLoading: false,
-        activeAccount: activeAccount || null,
+        activeAccount: activeAccount || {} as Account,
         activeAccountId: activeAccount?.id || "",
       });
     } catch (error) {
@@ -324,6 +325,7 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
   },
 
   groupTransactionsByDate: async (transactions: Transaction[]) => {
+    const { activeAccountId } = get();
     const grouped: Record<string, any[]> = {};
 
     transactions.forEach((transaction) => {
@@ -337,18 +339,18 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
       grouped[dateStr].push({
         ...transaction,
         date: date.toISOString().split("T")[0],
-        icon: transaction.type === "income" ? "💰" : "💳",
-        color: transaction.type === "income" ? "#34C759" : "#FF3B30",
+        icon: transaction.type === "income" ? "💰" : transaction.type === "transfer" ? "🔄" : "💳",
+        color: transaction.type === "income" ? "#34C759" : transaction.type === "transfer" ? "#007AFF" : "#FF3B30",
       });
     });
     // 转换为SectionList需要的格式 (使用 big.js 避免浮点数精度问题)
     const r = Object.entries(grouped).map(([title, data]) => {
       const expenseTotal = data
-        .filter((t: any) => t.type === "expense")
+        .filter((t: any) => t.type === "expense" || (t.type === "transfer" && t.fromAccountId === activeAccountId))
         .reduce((sum: Big, t: any) => sum.plus(new Big(t.amount)), new Big(0));
 
       const incomeTotal = data
-        .filter((t: any) => t.type === "income")
+        .filter((t: any) => t.type === "income" || (t.type === "transfer" && t.fromAccountId !== activeAccountId))
         .reduce((sum: Big, t: any) => sum.plus(new Big(t.amount)), new Big(0));
 
       const total = {

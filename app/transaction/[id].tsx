@@ -131,7 +131,7 @@ export default function TransactionDetailScreen() {
           />
         </TouchableOpacity>
         <Text className="text-lg font-semibold text-text">交易详情</Text>
-        <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center bg-neutral-100 dark:bg-neutral-800">
+        <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center">
         </TouchableOpacity>
       </View>
 )
@@ -185,18 +185,33 @@ export default function TransactionDetailScreen() {
   };
 
   const handleDeleteTransaction = (transaction: TransactionWithDetailInfo) => {
-    Alert.alert(
-      "确认删除",
-      `确定删除交易记录${transaction.transactionDate.toLocaleDateString()}的${transaction!.tag!.name} 吗？`,
-      [
-        { text: "取消", style: "cancel" },
-        {
-          text: "删除",
-          style: "destructive",
-          onPress: () => deleteTransaction(transaction.id),
-        },
-      ]
-    );
+    if (transaction.type === "transfer") {
+      Alert.alert(
+        "确认删除",
+        `此转账交易仅会从当前账户中删除，目标账户的记录需要您手动删除。确定删除吗？`,
+        [
+          { text: "取消", style: "cancel" },
+          {
+            text: "删除",
+            style: "destructive",
+            onPress: () => deleteTransaction(transaction.id),
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        "确认删除",
+        `确定删除交易记录${transaction.transactionDate.toLocaleDateString()}的${transaction!.tag!.name} 吗？`,
+        [
+          { text: "取消", style: "cancel" },
+          {
+            text: "删除",
+            style: "destructive",
+            onPress: () => deleteTransaction(transaction.id),
+          },
+        ]
+      );
+    }
   }
 
 
@@ -481,19 +496,21 @@ export default function TransactionDetailScreen() {
               删除
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-[2] h-12 rounded-full items-center justify-center bg-black dark:bg-white shadow-lg flex-row gap-2"
-            onPress={() => router.push(`/transaction/edit/${id}`)}
-          >
-            <Ionicons
-              name="create-outline"
-              size={18}
-              color={isDarkMode ? "black" : "white"}
-            />
-            <Text className="text-base font-semibold text-white dark:text-black">
-              编辑
-            </Text>
-          </TouchableOpacity>
+          {transaction.type !== "transfer" && (
+            <TouchableOpacity
+              className="flex-[2] h-12 rounded-full items-center justify-center bg-black dark:bg-white shadow-lg flex-row gap-2"
+              onPress={() => router.push(`/transaction/edit/${id}`)}
+            >
+              <Ionicons
+                name="create-outline"
+                size={18}
+                color={isDarkMode ? "black" : "white"}
+              />
+              <Text className="text-base font-semibold text-white dark:text-black">
+                编辑
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </SafeAreaView>

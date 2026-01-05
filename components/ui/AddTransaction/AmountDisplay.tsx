@@ -11,6 +11,7 @@ interface AmountDisplayProps {
   accountName?: string;
   note?: string;
   onNoteChange?: (note: string) => void;
+  type?: "expense" | "income" | "transfer";
 }
 
 export const AmountDisplay: React.FC<AmountDisplayProps> = ({
@@ -21,17 +22,20 @@ export const AmountDisplay: React.FC<AmountDisplayProps> = ({
   accountName,
   note = '',
   onNoteChange,
+  type,
 }) => {
   return (
     <View className="px-6 py-6">
-      <View className="flex-row items-center gap-2 mb-2">
-        <View className="w-8 h-8 rounded-full bg-card items-center justify-center border border-border">
-          <Ionicons name={categoryIcon} size={16} color={categoryColor} />
+      {type !== "transfer" && (
+        <View className="flex-row items-center gap-2 mb-2">
+          <View className="w-8 h-8 rounded-full bg-card items-center justify-center border border-border">
+            <Ionicons name={categoryIcon} size={16} color={categoryColor} />
+          </View>
+          <Text className="text-textSecondary text-sm">
+            {categoryName} {accountName ? `-${accountName}` : ''}
+          </Text>
         </View>
-        <Text className="text-textSecondary text-sm">
-          {categoryName} {accountName ? `-${accountName}` : ''}
-        </Text>
-      </View>
+      )}
       <Text className="text-5xl font-bold text-text">
         ¥ {amount || '0.00'}
       </Text>

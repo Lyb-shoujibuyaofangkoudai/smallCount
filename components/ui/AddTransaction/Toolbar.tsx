@@ -14,9 +14,10 @@ interface ToolbarProps {
   payMethod?: PaymentMethod;
   onTicketImagesChange?: (images: TicketImage[]) => void;
   initialTicketImages?: TicketImage[];
+  type?: "expense" | "income" | "transfer";
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMethodChange, payMethod, onTicketImagesChange, initialTicketImages = [] }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMethodChange, payMethod, onTicketImagesChange, initialTicketImages = [], type }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [showTicketImageModal, setShowTicketImageModal] = useState(false);
@@ -112,14 +113,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
         >
           <Text className="text-xs text-textSecondary">📅 {formatDateForDisplay(date)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border"
-          onPress={handlePaymentMethodPress}
-        >
-          <Text className="text-xs text-textSecondary">
-            💰 支付方式：{selectedPaymentMethod ? selectedPaymentMethod.name : ''}
-          </Text>
-        </TouchableOpacity>
+        {type !== "transfer" && (
+          <TouchableOpacity 
+            className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border"
+            onPress={handlePaymentMethodPress}
+          >
+            <Text className="text-xs text-textSecondary">
+              💰 支付方式：{selectedPaymentMethod ? selectedPaymentMethod.name : ''}
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity 
           className="bg-card px-3 py-1.5 rounded-md shadow-sm border border-border"
           onPress={handleTicketImagePress}

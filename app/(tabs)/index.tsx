@@ -29,19 +29,23 @@ const DateSectionHeader = ({
   title: string;
   total: { expense: number; income: number };
 }) => {
-  const totalText =
-    total.income > 0
-      ? `收: ${total.income.toFixed(2)}`
-      : `支: ${total.expense.toFixed(2)}`;
-
   return (
     <View className="flex-row justify-between items-center bg-transparent px-4 py-2 mt-4 dark:border-gray-800">
       <Text className="text-sm font-medium text-gray-400 dark:text-gray-300">
         {title}
       </Text>
-      <Text className="text-sm font-medium text-gray-400 dark:text-gray-300">
-        {totalText}
-      </Text>
+      <View className="flex-row items-center gap-3">
+        {total.income > 0 && (
+          <Text className="text-sm font-medium text-green-500">
+            收: {total.income.toFixed(2)}
+          </Text>
+        )}
+        {total.expense > 0 && (
+          <Text className="text-sm font-medium text-red-500">
+            支: {total.expense.toFixed(2)}
+          </Text>
+        )}
+      </View>
     </View>
   );
 };
@@ -62,27 +66,46 @@ const DetailList = ({
         className="mb-2 rounded-lg overflow-hidden"
         onPress={() => router.navigate(`/transaction/${item.id}`)}
         actions={[
-          {
-            label: "编辑",
-            onPress: () => router.navigate(`/transaction/edit/${item.id}`),
-            className: "bg-blue-500",
-            textClassName: "text-white",
-          },
+          ...(item.type !== "transfer"
+            ? [
+                {
+                  label: "编辑",
+                  onPress: () => router.navigate(`/transaction/edit/${item.id}`),
+                  className: "bg-blue-500",
+                  textClassName: "text-white",
+                },
+              ]
+            : []),
           {
             label: "删除",
             onPress: () => {
-              Alert.alert(
-                "确认删除",
-                `确定删除交易记录${item.transactionDate.toLocaleDateString()}的${item.tag.name} 吗？`,
-                [
-                  { text: "取消", style: "cancel" },
-                  {
-                    text: "删除",
-                    style: "destructive",
-                    onPress: () => deleteTransaction(item.id),
-                  },
-                ]
-              );
+              if (item.type === "transfer") {
+                Alert.alert(
+                  "确认删除",
+                  `此转账交易仅会从当前账户中删除，目标账户的记录需要您手动删除。确定删除吗？`,
+                  [
+                    { text: "取消", style: "cancel" },
+                    {
+                      text: "删除",
+                      style: "destructive",
+                      onPress: () => deleteTransaction(item.id),
+                    },
+                  ]
+                );
+              } else {
+                Alert.alert(
+                  "确认删除",
+                  `确定删除交易记录${item.transactionDate.toLocaleDateString()}的${item.tag.name} 吗？`,
+                  [
+                    { text: "取消", style: "cancel" },
+                    {
+                      text: "删除",
+                      style: "destructive",
+                      onPress: () => deleteTransaction(item.id),
+                    },
+                  ]
+                );
+              }
             },
             className: "bg-red-500",
             textClassName: "text-white",
@@ -92,13 +115,7 @@ const DetailList = ({
       >
         <TransactionItem
           key={item.id}
-          title={item.tag.name}
-          amount={item.amount}
-          type={item.type}
-          date={item.date}
-          paymentMethod={item.paymentMethod}
-          tag={item.tag}
-          icon={item.icon}
+          data={item}
         />
       </SwipeableRow>
     </View>

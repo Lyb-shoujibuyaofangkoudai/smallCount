@@ -51,20 +51,28 @@ async function ensureDefaultAccount(userId: string) {
 
 const addDefaultTagsDataToDb = async (accountId: string) => {
      // 创建一些标签数据 - 如果没有标签数据 模拟用户进行几笔标签
-    const existingTags = await TagService.getAllTags();
-    console.log('已存在标签:', existingTags.length);
-    if (existingTags.length === 0) {
-      try {
-        // 使用TagService的批量创建方法，这样可以复用业务逻辑校验
-        const expenseTags = await TagService.createTagsBatch(DEFAULT_TAGS.expenses);
-        const incomeTags = await TagService.createTagsBatch(DEFAULT_TAGS.incomes);
-        console.log(`标签初始化完成: ${expenseTags.length + incomeTags.length} 个标签`);
-      } catch (error) {
-        console.error('标签初始化失败:', error);
-        throw error;
-      }
-    } else {
-      console.log(`标签已存在: ${existingTags.length} 个标签`);
+    try {
+      const existingTags = await TagService.getAllTags();
+    const existingTagTypeLenMap = existingTags.reduce((acc, tag) => {
+      acc[tag.type] = (acc[tag.type] || 0) + 1;
+      return acc;
+    }, {} as Record<'expense' | 'income' | 'transfer', number>);
+    console.log('已存在标签:', existingTagTypeLenMap['expense'], existingTagTypeLenMap['income'], existingTagTypeLenMap['transfer']);
+
+    if(!existingTagTypeLenMap['expense']) {
+      await TagService.createTagsBatch(DEFAULT_TAGS.expenses);
+    }
+    
+    if(!existingTagTypeLenMap['income']) {
+      await TagService.createTagsBatch(DEFAULT_TAGS.incomes);
+    }
+    
+    if(!existingTagTypeLenMap['transfer']) {
+      await TagService.createTagsBatch(DEFAULT_TAGS.transfers);
+    }
+    } catch (error) {
+      console.error('获取标签失败:', error);
+      throw error;
     }
 };
 

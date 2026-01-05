@@ -36,7 +36,33 @@ export class TransactionRepository extends BaseRepository<Transaction> {
       } else if (transaction.type === "income") {
         newBalance = currentBalance.plus(transactionAmount);
       } else {
-        // 转账类型需要更复杂的处理，这里暂时不处理
+        if (!transaction.transferAccountId) return;
+        const fromAccount = await tx.query.accounts.findFirst({
+          where: eq(accounts.id, transaction.accountId),
+        });
+        const toAccount = await tx.query.accounts.findFirst({
+          where: eq(accounts.id, transaction.transferAccountId!),
+        });
+
+        if (fromAccount) {
+          const currentBalance = new Big(fromAccount.balance || 0);
+          const transactionAmount = new Big(transaction.amount);
+          const newBalance = currentBalance.minus(transactionAmount);
+          await tx
+            .update(accounts)
+            .set({ balance: newBalance.toNumber() })
+            .where(eq(accounts.id, transaction.accountId));
+        }
+
+        if (toAccount) {
+          const currentBalance = new Big(toAccount.balance || 0);
+          const transactionAmount = new Big(transaction.amount);
+          const newBalance = currentBalance.plus(transactionAmount);
+          await tx
+            .update(accounts)
+            .set({ balance: newBalance.toNumber() })
+            .where(eq(accounts.id, transaction.transferAccountId!));
+        }
         return;
       }
 
@@ -47,34 +73,63 @@ export class TransactionRepository extends BaseRepository<Transaction> {
     }
   }
 
-  // 私有方法：恢复交易对账户余额的影响
   private async _reverseTransactionImpact(
     tx: any,
     transaction: Transaction
   ): Promise<void> {
-    const account = await tx.query.accounts.findFirst({
-      where: eq(accounts.id, transaction.accountId),
-    });
+    const transactionAmount = new Big(transaction.amount);
 
-    if (account) {
-      const currentBalance = new Big(account.balance || 0);
-      const transactionAmount = new Big(transaction.amount);
-      let newBalance: Big;
+    if (transaction.type === "expense") {
+      const account = await tx.query.accounts.findFirst({
+        where: eq(accounts.id, transaction.accountId),
+      });
+      if (account) {
+        const currentBalance = new Big(account.balance || 0);
+        const newBalance = currentBalance.plus(transactionAmount);
+        await tx
+          .update(accounts)
+          .set({ balance: newBalance.toNumber() })
+          .where(eq(accounts.id, transaction.accountId));
+      }
+    } else if (transaction.type === "income") {
+      const account = await tx.query.accounts.findFirst({
+        where: eq(accounts.id, transaction.accountId),
+      });
+      if (account) {
+        const currentBalance = new Big(account.balance || 0);
+        const newBalance = currentBalance.minus(transactionAmount);
+        await tx
+          .update(accounts)
+          .set({ balance: newBalance.toNumber() })
+          .where(eq(accounts.id, transaction.accountId));
+      }
+    } else if (transaction.type === "transfer") {
+      if (!transaction.fromAccountId || !transaction.transferAccountId) return;
 
-      // 反向操作：支出变收入，收入变支出
-      if (transaction.type === "expense") {
-        newBalance = currentBalance.plus(transactionAmount);
-      } else if (transaction.type === "income") {
-        newBalance = currentBalance.minus(transactionAmount);
-      } else {
-        // 转账类型需要更复杂的处理，这里暂时不处理
-        return;
+      const fromAccount = await tx.query.accounts.findFirst({
+        where: eq(accounts.id, transaction.fromAccountId),
+      });
+      const toAccount = await tx.query.accounts.findFirst({
+        where: eq(accounts.id, transaction.transferAccountId),
+      });
+
+      if (fromAccount) {
+        const currentBalance = new Big(fromAccount.balance || 0);
+        const newBalance = currentBalance.plus(transactionAmount);
+        await tx
+          .update(accounts)
+          .set({ balance: newBalance.toNumber() })
+          .where(eq(accounts.id, transaction.fromAccountId));
       }
 
-      await tx
-        .update(accounts)
-        .set({ balance: newBalance.toNumber() })
-        .where(eq(accounts.id, transaction.accountId));
+      if (toAccount) {
+        const currentBalance = new Big(toAccount.balance || 0);
+        const newBalance = currentBalance.minus(transactionAmount);
+        await tx
+          .update(accounts)
+          .set({ balance: newBalance.toNumber() })
+          .where(eq(accounts.id, transaction.transferAccountId));
+      }
     }
   }
 
@@ -125,6 +180,36 @@ export class TransactionRepository extends BaseRepository<Transaction> {
             .update(accounts)
             .set({ balance: newBalance.toNumber() })
             .where(eq(accounts.id, data.accountId));
+        }
+      } else if (data.type === "transfer") {
+        if (!data.transferAccountId) {
+          throw new Error("转账交易必须指定转入账户");
+        }
+        const fromAccount = await tx.query.accounts.findFirst({
+          where: eq(accounts.id, data.accountId),
+        });
+        const toAccount = await tx.query.accounts.findFirst({
+          where: eq(accounts.id, data.transferAccountId),
+        });
+
+        const transactionAmount = new Big(data.amount);
+
+        if (fromAccount) {
+          const fromBalance = new Big(fromAccount.balance || 0);
+          const newFromBalance = fromBalance.minus(transactionAmount);
+          await tx
+            .update(accounts)
+            .set({ balance: newFromBalance.toNumber() })
+            .where(eq(accounts.id, data.accountId));
+        }
+
+        if (toAccount) {
+          const toBalance = new Big(toAccount.balance || 0);
+          const newToBalance = toBalance.plus(transactionAmount);
+          await tx
+            .update(accounts)
+            .set({ balance: newToBalance.toNumber() })
+            .where(eq(accounts.id, data.transferAccountId!));
         }
       }
 
