@@ -18,6 +18,7 @@ module.exports = {
         notification: "var(--color-notification)",
         success: "var(--color-success)",
         warning: "var(--color-warning)",
+        danger: "var(--color-danger)",
         // 自定义颜色
         secondary: "var(--color-secondary)",
         // 向后兼容的颜色别名

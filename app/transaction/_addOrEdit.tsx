@@ -6,6 +6,7 @@ import { Header } from "@/components/ui/AddTransaction/Header";
 import { NumberPad } from "@/components/ui/AddTransaction/NumberPad";
 import { TicketImage } from "@/components/ui/AddTransaction/TicketImageModal";
 import { Toolbar } from "@/components/ui/AddTransaction/Toolbar";
+import TransferGrid from "@/components/ui/AddTransaction/TransferGrid";
 import { PaymentMethod } from "@/db/repositories/PaymentMethodRepository";
 import { NewTag } from "@/db/repositories/TagRepository";
 import { AttachmentService } from "@/db/services/AttachmentService";
@@ -18,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 interface TransactionFormProps {
-  mode: "add" | "edit";
+  mode: "add" | "edit" | "transfer";
   transactionId?: string; // 仅在 edit 模式下需要
 }
 
@@ -42,9 +43,12 @@ export default function AddTransactionScreen({
   const isEdit = mode === "edit";
   const id = transactionId || "";
 
-  const [type, setType] = useState<"expense" | "income">("expense");
+  const [type, setType] = useState<"expense" | "income" | "transfer">(
+    "expense"
+  );
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   //   const [isEdit, setIsEdit] = useState(false);
   // 使用数据存储获取标签状态
@@ -52,10 +56,16 @@ export default function AddTransactionScreen({
   // 根据类型过滤标签
   const expenseList = tags.filter((tag) => tag.type === "expense");
   const incomeList = tags.filter((tag) => tag.type === "income");
+  const transferList = tags.filter((tag) => tag.type === "transfer");
 
   // 2. 根据类型获取当前显示的列表
-  // 注意：转账(transfer)通常使用支出分类，或者你可以为其单独创建 transferList
-  const currentCategories = type === "income" ? incomeList : expenseList;
+  // 转账(transfer)默认使用支出分类，也可以使用专门的 transfer 分类
+  const currentCategories =
+    type === "income"
+      ? incomeList
+      : type === "transfer"
+        ? transferList
+        : expenseList;
 
   // 3. 初始化选中项 (注意：这里要依赖当前的 list state，而不是静态数据)
   const [selectedCategory, setSelectedCategory] = useState<NewTag>(
@@ -75,7 +85,14 @@ export default function AddTransactionScreen({
 
   // 6. 使用全局store中的账户状态管理
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showTransferAccountModal, setShowTransferAccountModal] =
+    useState(false);
   const selectedAccount = activeAccount;
+
+  // 转账专用：转入账户状态
+  const [transferAccount, setTransferAccount] = useState<
+    (typeof accounts)[0] | null
+  >(null);
 
   // 7. 添加票据图片状态管理
   const [ticketImages, setTicketImages] = useState<TicketImage[]>([]);
@@ -106,13 +123,23 @@ export default function AddTransactionScreen({
             }
           }
 
-          // 设置账户
-          if (transactionDetail.accountId) {
-            const foundAccount = accounts.find(
-              (account) => account.id === transactionDetail.accountId
+          // 设置转出账户（编辑模式下）
+          if (transactionDetail.fromAccountId) {
+            const foundFromAccount = accounts.find(
+              (account) => account.id === transactionDetail.fromAccountId
             );
-            if (foundAccount) {
-              switchActiveAccount(foundAccount.id);
+            if (foundFromAccount) {
+              switchActiveAccount(foundFromAccount.id);
+            }
+          }
+
+          // 设置转入账户（编辑模式下）
+          if (transactionDetail.transferAccountId) {
+            const foundTransferAccount = accounts.find(
+              (account) => account.id === transactionDetail.transferAccountId
+            );
+            if (foundTransferAccount) {
+              setTransferAccount(foundTransferAccount);
             }
           }
 
@@ -161,12 +188,13 @@ export default function AddTransactionScreen({
     }
   }, [id]);
 
+
   // 当标签数据变化时，确保选中分类正确
   useEffect(() => {
     if (currentCategories.length > 0 && !selectedCategory) {
       setSelectedCategory(currentCategories[0]);
     }
-  }, [currentCategories, selectedCategory]);
+  }, [currentCategories, selectedCategory, type]);
 
   // 处理数字键盘输入
   const handlePressNum = (num: string) => {
@@ -181,6 +209,7 @@ export default function AddTransactionScreen({
 
   const handleSubmit = async () => {
     try {
+
       // 基本校验
       if (!amount || parseFloat(amount) <= 0) {
         Toast.show({
@@ -209,37 +238,76 @@ export default function AddTransactionScreen({
         return;
       }
 
+      // 转账模式额外校验
+      if (type === "transfer") {
+        if (!transferAccount) {
+          Toast.show({
+            type: "error",
+            text1: "转入账户错误",
+            text2: "请选择转入账户",
+          });
+          return;
+        }
+        if (selectedAccount?.id === transferAccount.id) {
+          Toast.show({
+            type: "error",
+            text1: "账户选择错误",
+            text2: "转出账户和转入账户不能相同",
+          });
+          return;
+        }
+        // 转账余额校验
+        const transferAmount = parseFloat(amount);
+        const currentBalance = selectedAccount?.balance ?? 0;
+        if (currentBalance <= 0) {
+          Toast.show({
+            type: "error",
+            text1: "余额不足",
+            text2: `${selectedAccount?.name} 账户余额为 0，无法转账`,
+          });
+          return;
+        }
+        if (transferAmount > currentBalance) {
+          Toast.show({
+            type: "error",
+            text1: "余额不足",
+            text2: `转账金额 ¥${transferAmount} 超过账户余额 ¥${currentBalance}`,
+          });
+          return;
+        }
+      }
+
       console.log("selectedPaymentMethod", selectedPaymentMethod);
       console.log("selectedAccount", selectedAccount);
       console.log("selectedCategory", selectedCategory);
+      console.log("transferAccount", transferAccount);
+
+      setIsSubmitting(true);
 
       // TODO: 构建交易数据
       const transactionData = {
-        type: type,
+        type: type as "expense" | "income" | "transfer",
         amount: parseFloat(amount),
         tagId: selectedCategory.id,
-        accountId: selectedAccount.id,
+        accountId: selectedAccount!.id,
         description:
           note ||
-          `${selectedCategory.name}${type === "income" ? "收入" : "支出"}`,
+          `${selectedCategory.name}${type === "income" ? "收入" : type === "transfer" ? "转账" : "支出"}`,
         transactionDate: new Date(selectedDate),
         paymentMethodId: (selectedPaymentMethod as PaymentMethod).id,
         notes: note || "",
-        fromAccountId: null, // 简化版本不支持转账
-        transferAccountId: null, // 简化版本不支持转账
-        location: null, // 简化版本不支持位置
-        receiptImageUrl: null, // 简化版本不支持收据图片
-        isRecurring: false, // 简化版本不支持周期性交易
-        recurringRule: null, // 简化版本不支持周期性规则
-        isConfirmed: true, // 默认已确认
+        fromAccountId: type === "transfer" ? selectedAccount!.id : null,
+        transferAccountId: type === "transfer" ? transferAccount!.id : null,
+        location: null,
+        receiptImageUrl: null,
+        isRecurring: false,
+        recurringRule: null,
+        isConfirmed: true,
         attachmentIds: null,
       };
 
       if (isEdit && id) {
-        // 编辑模式：更新交易
-        console.log("正在更新交易:", id, transactionData);
         await updateTransaction(id, transactionData);
-        console.log("先删除该交易的所有旧附件", currentUser);
 
         if (currentUser) {
           // 先删除该交易的所有旧附件
@@ -263,30 +331,95 @@ export default function AddTransactionScreen({
         // 显示成功提示
         Toast.show({
           type: "success",
-          text1: "交易更新成功",
-          text2: `已成功更新${type === "income" ? "收入" : "支出"}¥${amount}`,
+          text1: isEdit ? "交易更新成功" : "交易创建成功",
+          text2:
+            type === "transfer"
+              ? `已成功转账¥${amount}（${selectedAccount?.name} → ${transferAccount?.name}）`
+              : `已成功${type === "income" ? "收入" : "支出"}¥${amount}`,
           position: "bottom",
         });
       } else {
-        // 创建模式：新增交易
-        const newTransaction = await addTransaction(transactionData);
+        if (type === "transfer") {
+          const transferAmountVal = parseFloat(amount);
+          const transferOutTag = transferList.find(t => t.name === "转账支出" && t.isDefault);
+          const transferInTag = transferList.find(t => t.name === "转账收入" && t.isDefault);
+          const paymentMethod = paymentMethods.find(p => p.name === '其他');
+          
+          const outTransactionData = {
+            type: "transfer" as const,
+            amount: transferAmountVal,
+            tagId: transferOutTag!.id,
+            accountId: selectedAccount!.id,
+            description: note || `从 ${selectedAccount?.name} 转出`,
+            transactionDate: new Date(selectedDate),
+            paymentMethodId: paymentMethod!.id,
+            notes: note || "",
+            fromAccountId: selectedAccount!.id,
+            transferAccountId: transferAccount!.id,
+            location: null,
+            receiptImageUrl: null,
+            isRecurring: false,
+            recurringRule: null,
+            isConfirmed: true,
+            attachmentIds: null,
+          };
+          
+          const inTransactionData = {
+            type: "transfer" as const,
+            amount: transferAmountVal,
+            tagId: transferInTag!.id,
+            accountId: transferAccount!.id,
+            description: note || `转入 ${transferAccount?.name}`,
+            transactionDate: new Date(selectedDate),
+            paymentMethodId: paymentMethod!.id,
+            notes: note || "",
+            fromAccountId: selectedAccount!.id,
+            transferAccountId: transferAccount!.id,
+            location: null,
+            receiptImageUrl: null,
+            isRecurring: false,
+            recurringRule: null,
+            isConfirmed: true,
+            attachmentIds: null,
+          };
+          
+          const outTransaction = await addTransaction(outTransactionData);
+          const inTransaction = await addTransaction(inTransactionData);
+          
+          if (ticketImages.length > 0) {
+            await addTicketImagesToTransaction(
+              ticketImages.map((item) => ({
+                transactionId: outTransaction.id,
+                ...item,
+              })),
+              outTransaction.id
+            );
+          }
+          
+          Toast.show({
+            type: "success",
+            text1: "转账成功",
+            text2: `已成功转账¥${amount}（${selectedAccount?.name} → ${transferAccount?.name}）`,
+          });
+        } else {
+          const newTransaction = await addTransaction(transactionData);
 
-        if (newTransaction && ticketImages.length) {
-          await addTicketImagesToTransaction(
-            ticketImages.map((item) => ({
-              transactionId: newTransaction.id,
-              ...item,
-            })),
-            newTransaction.id
-          );
+          if (newTransaction && ticketImages.length) {
+            await addTicketImagesToTransaction(
+              ticketImages.map((item) => ({
+                transactionId: newTransaction.id,
+                ...item,
+              })),
+              newTransaction.id
+            );
+          }
+
+          Toast.show({
+            type: "success",
+            text1: "交易创建成功",
+            text2: `已成功记录${type === "income" ? "收入" : "支出"}¥${amount}`,
+          });
         }
-
-        // 显示成功提示
-        Toast.show({
-          type: "success",
-          text1: "交易创建成功",
-          text2: `已成功记录${type === "income" ? "收入" : "支出"}¥${amount}`,
-        });
       }
 
       // 重置表单状态
@@ -310,6 +443,9 @@ export default function AddTransactionScreen({
             ? error.message
             : `${isEdit ? "更新" : "创建"}交易时发生错误`,
       });
+    } finally {
+      // 无论成功还是失败，都重置提交状态
+      setIsSubmitting(false);
     }
   };
 
@@ -335,7 +471,12 @@ export default function AddTransactionScreen({
         onChangeType={(newType) => {
           setType(newType);
           // 切换类型时，重置选中项为新类型列表的第一个
-          const newList = newType === "income" ? incomeList : expenseList;
+          const newList =
+            newType === "income"
+              ? incomeList
+              : newType === "transfer"
+              ? transferList
+              : expenseList;
           if (newList.length > 0) {
             setSelectedCategory(newList[0]);
           }
@@ -345,6 +486,7 @@ export default function AddTransactionScreen({
 
       {/* 2. Amount Display */}
       <AmountDisplay
+        type={type}
         amount={amount}
         categoryName={selectedCategory?.name}
         categoryIcon={selectedCategory?.icon}
@@ -354,18 +496,35 @@ export default function AddTransactionScreen({
         onNoteChange={setNote}
       />
 
-      {/* 3. Category Grid (Scrollable Area) */}
-      <CategoryGrid
-        categories={currentCategories}
-        selectedId={selectedCategory?.id}
-        onSelect={setSelectedCategory}
-        // 传递新增的 Props
-        onUpdateCategories={handleUpdateCategories}
-        currentType={type} // 转账暂时复用支出类型，或根据需求调整
-      />
+      {/* 3. Category Grid / Transfer Grid */}
+      {type === "transfer" ? (
+        <TransferGrid
+          fromAccount={selectedAccount}
+          toAccount={transferAccount}
+          amount={amount}
+          onCycleFrom={() => setShowAccountModal(true)}
+          onCycleTo={() => setShowTransferAccountModal(true)}
+          onSwap={() => {
+            const temp = transferAccount;
+            setTransferAccount(selectedAccount);
+            if (temp) {
+              switchActiveAccount(temp.id);
+            }
+          }}
+        />
+      ) : (
+        <CategoryGrid
+          categories={currentCategories}
+          selectedId={selectedCategory?.id}
+          onSelect={setSelectedCategory}
+          onUpdateCategories={handleUpdateCategories}
+          currentType={type}
+        />
+      )}
 
       {/* 4. Toolbar */}
       <Toolbar
+        type={type}
         date={selectedDate}
         onDateChange={setSelectedDate}
         onPaymentMethodChange={setSelectedPaymentMethod}
@@ -377,6 +536,8 @@ export default function AddTransactionScreen({
       {/* 5. Number Pad (Fixed at bottom) */}
       <View className="pb-safe">
         <NumberPad
+          type={type}
+          isSubmitting={isSubmitting}
           onPressNum={handlePressNum}
           onDelete={handleDelete}
           onSubmit={handleSubmit}
@@ -395,6 +556,18 @@ export default function AddTransactionScreen({
         }}
         selectedId={selectedAccount?.id}
         data={accounts}
+      />
+
+      {/* 7. 转账账户选择弹窗 */}
+      <AccountSelectModal
+        visible={showTransferAccountModal}
+        onClose={() => setShowTransferAccountModal(false)}
+        onSelect={(account) => {
+          setTransferAccount(account);
+          setShowTransferAccountModal(false);
+        }}
+        selectedId={transferAccount?.id}
+        data={accounts.filter((acc) => acc.id !== selectedAccount?.id)}
       />
     </SafeAreaView>
   );

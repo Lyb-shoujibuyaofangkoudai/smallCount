@@ -160,7 +160,7 @@ export const TagService = {
     for (const tagData of tagsData) {
       const key = `${tagData.name.toLowerCase()}_${tagData.type}`;
       if (existingTagNames.has(key)) {
-        throw new Error(`已存在相同名称的${tagData.type === 'expense' ? '支出' : '收入'}标签: ${tagData.name}`);
+        throw new Error(`已存在相同名称的${tagData.type === 'expense' ? '支出' : tagData.type === 'transfer' ? '转账' : '收入'}标签: ${tagData.name}`);
       }
     }
     

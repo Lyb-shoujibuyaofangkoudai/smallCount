@@ -75,8 +75,16 @@ export const TransactionService = {
     }
     
     // 转账交易需要验证目标账户
-    if (transactionData.type === 'transfer' && !transactionData.transferAccountId) {
-      throw new Error('转账交易必须指定目标账户');
+    if (transactionData.type === 'transfer') {
+      if (!transactionData.fromAccountId) {
+        throw new Error('转账交易必须指定转出账户');
+      }
+      if (!transactionData.transferAccountId) {
+        throw new Error('转账交易必须指定转入账户');
+      }
+      if (transactionData.fromAccountId === transactionData.transferAccountId) {
+        throw new Error('转出账户和转入账户不能相同');
+      }
     }
     
     return await transactionRepo.createTransactionWithBalanceUpdate(transactionData);
@@ -417,13 +425,11 @@ export const TransactionService = {
   },
 
   /**
-   * 删除交易（软删除或硬删除）
+   * 删除交易记录（包含余额恢复）
    * @param transactionId - 交易ID
    * @returns 删除结果
    */
   async deleteTransaction(transactionId: string) {
-    // 这里可以实现软删除逻辑，比如标记为已删除状态
-    // 目前先实现硬删除
     return await transactionRepo.delete(transactionId);
   },
 

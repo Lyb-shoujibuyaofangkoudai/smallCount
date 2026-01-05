@@ -19,7 +19,7 @@ export interface DataState {
   accountsLoading: boolean;
   accountsError: string;
   activeAccountId: string;
-  activeAccount: Account | null;
+  activeAccount: Account;
 
   // 交易相关
   transactions: TransactionWithDetailInfo[];
