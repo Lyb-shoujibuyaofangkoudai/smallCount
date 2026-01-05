@@ -343,6 +343,10 @@ const useDataStore = createAppStore<DataStore>((set, get) => ({
         color: transaction.type === "income" ? "#34C759" : transaction.type === "transfer" ? "#007AFF" : "#FF3B30",
       });
     });
+
+    // 按日期排序 (最新的在顶部)
+    Object.values(grouped).forEach((data) => data.reverse());
+
     // 转换为SectionList需要的格式 (使用 big.js 避免浮点数精度问题)
     const r = Object.entries(grouped).map(([title, data]) => {
       const expenseTotal = data
