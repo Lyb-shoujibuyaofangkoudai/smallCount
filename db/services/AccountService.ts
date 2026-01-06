@@ -53,7 +53,6 @@ export class AccountService {
    * @returns 更新后的账户信息
    */
   static async updateAccount(accountId: string, updateData: any) {
-    console.log("更新账户:", accountId, updateData);
     return await accountRepo.update(accountId, updateData);
   }
 
@@ -82,5 +81,14 @@ export class AccountService {
    */
   static async getActiveAccount(userId: string) {
     return await accountRepo.getActiveAccount(userId);
+  }
+
+  /**
+   * 根据ID获取账户信息
+   * @param accountId - 账户ID
+   * @returns 账户信息
+   */
+  static async getAccountById(accountId: string) {
+    return await accountRepo.findByAccountId(accountId);
   }
 }

@@ -77,4 +77,15 @@ export class AccountRepository extends BaseRepository<Account> {
       orderBy: (accounts, { desc }) => [desc(accounts.createdAt)],
     });
   }
+
+  /**
+   * 根据ID获取账户信息
+   * @param accountId - 账户ID
+   * @returns 账户信息
+   */
+  async findByAccountId(accountId: string): Promise<Account | undefined> {
+    return await this.db.query.accounts.findFirst({
+      where: and(eq(accounts.id, accountId), eq(accounts.isArchived, false)),
+    });
+  }
 }

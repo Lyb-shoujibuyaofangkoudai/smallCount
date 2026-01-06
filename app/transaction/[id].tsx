@@ -1,12 +1,14 @@
 import { CURRENCIES } from "@/constants/data";
 import { useTheme } from "@/context/ThemeContext";
+import { Account } from "@/db/repositories/AccountRepository";
+import { AccountService } from "@/db/services/AccountService";
 import { TransactionWithDetailInfo } from "@/db/services/TransactionService";
 import useDataStore from "@/storage/store/useDataStore";
 import { addAlphaToColor } from "@/theme/colors";
 import { getFirstCharToUpper } from "@/utils/utils";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -108,33 +110,29 @@ const mockTransferTransaction = {
   },
 };
 
-
-
-
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams();
-  const { transactions, activeAccount,deleteTransaction } = useDataStore();
+  const { transactions, activeAccount, deleteTransaction } = useDataStore();
   const transaction = transactions.find((t) => t.id === id);
   const router = useRouter();
   const { isDarkMode, theme } = useTheme();
 
   const Head = () => (
-  <View className="flex-row items-center justify-between px-5 py-4 sticky top-0 z-10 bg-background/85 backdrop-blur-md">
-        <TouchableOpacity
-          className="w-10 h-10 rounded-full items-center justify-center bg-neutral-100 dark:bg-neutral-800"
-          onPress={() => router.back()}
-        >
-          <Ionicons
-            name="arrow-back"
-            size={20}
-            color={isDarkMode ? "white" : "black"}
-          />
-        </TouchableOpacity>
-        <Text className="text-lg font-semibold text-text">交易详情</Text>
-        <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center">
-        </TouchableOpacity>
-      </View>
-)
+    <View className="flex-row items-center justify-between px-5 py-4 sticky top-0 z-10 bg-background/85 backdrop-blur-md">
+      <TouchableOpacity
+        className="w-10 h-10 rounded-full items-center justify-center bg-neutral-100 dark:bg-neutral-800"
+        onPress={() => router.back()}
+      >
+        <Ionicons
+          name="arrow-back"
+          size={20}
+          color={isDarkMode ? "white" : "black"}
+        />
+      </TouchableOpacity>
+      <Text className="text-lg font-semibold text-text">交易详情</Text>
+      <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center"></TouchableOpacity>
+    </View>
+  );
 
   // 添加防御性检查，确保transaction对象存在
   if (!transaction) {
@@ -142,11 +140,43 @@ export default function TransactionDetailScreen() {
       <SafeAreaView className="flex-1">
         <Head />
         <View className="flex-1 items-center justify-center">
-          <Text className="text-lg font-semibold text-text">交易数据不存在</Text>
+          <Text className="text-lg font-semibold text-text">
+            交易数据不存在
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
+
+  const [fromAccount, setFromAccount] = useState<Account>({} as Account);
+  const [transferAccount, setTransferAccount] = useState<Account>({} as Account);
+
+  const getTransferTransactionAccountDetail = async () => {
+    if(transaction.type !== "transfer") {
+      return ;
+    } else {
+      const fromAccountId = transaction.fromAccountId;
+      const transferAccountId = transaction.transferAccountId;
+      const promiseArr = [
+        AccountService.getAccountById(fromAccountId!),
+        AccountService.getAccountById(transferAccountId!),
+      ];
+      const res = await Promise.allSettled(promiseArr);
+      console.log("查看获取数据结果：",JSON.stringify(res));
+      if(res[0].status === "fulfilled") {
+        setFromAccount(res[0].value as Account);
+      }
+      if(res[1].status === "fulfilled") {
+        setTransferAccount(res[1].value as Account);
+      }
+    }
+  }
+
+  useEffect(() => {
+    getTransferTransactionAccountDetail();
+  }, [transaction]);
+
+
 
   const getThemeClass = () => {
     switch (transaction.type) {
@@ -212,8 +242,7 @@ export default function TransactionDetailScreen() {
         ]
       );
     }
-  }
-
+  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -343,76 +372,76 @@ export default function TransactionDetailScreen() {
           </View>
         </View>
 
-        {/* TODO: 转账流程 - 仅转账类型显示 */}
+        {/* 转账流程 - 仅转账类型显示 */}
         {transaction.type === "transfer" &&
-          transaction.fromAccount &&
-          transaction.transferAccount && (
+          fromAccount.id &&
+          transferAccount.id && (
             <View className="px-5 mb-6">
-              <View className="bg-card rounded-2xl shadow-md p-6 flex-row items-start justify-between">
+              <View className="bg-card rounded-2xl shadow-md p-6 flex-row items-center justify-between">
                 {/* 转出账户 */}
-                <View className="w-1/3 items-center">
+                <View className="flex-1 items-center py-4 px-2 bg-red-500/15 rounded-3xl border-2 border-red-500/50">
+                  <View className="items-center bg-red-500/20 rounded-md py-0.5 px-2 mb-5">
+                    <Text className="text-sm text-red-500">转出 FROM</Text>
+                  </View>
+
                   <View
-                    className="w-13 h-13 p-2 rounded-lg items-center justify-center mb-2"
+                    className="w-14 h-14 rounded-md items-center justify-center mb-4"
                     style={{
-                      backgroundColor: `${transaction.fromAccount?.color}20`,
+                      backgroundColor: fromAccount.color || theme.colors.primary,
                     }}
                   >
-                    <Ionicons
-                      name={transaction.fromAccount?.icon as any}
-                      size={28}
-                      color={theme.colors.text}
-                    />
+                    <View className="rounded-md items-center justify-center">
+                      <Text className="text-white text-lg font-bold">
+                        {getFirstCharToUpper(fromAccount.name)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-sm font-semibold text-text">
-                    {transaction.fromAccount?.name}
+                  <Text
+                    className="text-lg font-medium text-text text-center"
+                    numberOfLines={1}
+                  >
+                    {fromAccount.name}
                   </Text>
-                  <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {transaction.fromAccount?.type === "bank"
-                      ? "储蓄卡"
-                      : transaction.fromAccount?.type === "credit_card"
-                        ? "信用卡"
-                        : "其他"}{" "}
-                    {transaction.fromAccount?.accountNumber}
+                  <Text className="text-sm text-textSecondary mt-1">
+                    余额: ¥{fromAccount.balance?.toFixed(2) || "0.00"}
                   </Text>
                 </View>
 
                 {/* 箭头 */}
-                <View className="flex-1 items-center pt-5">
-                  <View className="w-full h-0.5 bg-neutral-200 dark:bg-neutral-700 relative">
-                    <View className="absolute right-0 top-0 transform -translate-y-1/2">
-                      <Ionicons
-                        name="arrow-forward"
-                        size={12}
-                        color="#6b7280"
-                      />
-                    </View>
-                  </View>
+                <View className="mx-3 w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: theme.colors.card }}>
+                  <Ionicons
+                    name="arrow-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
                 </View>
 
                 {/* 转入账户 */}
-                <View className="w-1/3 items-center">
+                <View className="flex-1 items-center py-4 px-2 bg-green-500/15 rounded-3xl border-2 border-green-500/50">
+                  <View className="items-center bg-green-500/20 rounded-md py-0.5 px-2 mb-5">
+                    <Text className="text-sm text-green-500">转入 TO</Text>
+                  </View>
+
                   <View
-                    className="w-13 h-13 p-2 rounded-lg items-center justify-center mb-2"
+                    className="w-14 h-14 rounded-md items-center justify-center mb-4"
                     style={{
-                      backgroundColor: `${transaction.transferAccount?.color}20`,
+                      backgroundColor: transferAccount.color || theme.colors.success,
                     }}
                   >
-                    <Ionicons
-                      name={transaction.transferAccount?.icon as any}
-                      size={28}
-                      color={theme.colors.text}
-                    />
+                    <View className="rounded-md items-center justify-center">
+                      <Text className="text-white text-lg font-bold">
+                        {getFirstCharToUpper(transferAccount.name)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-sm font-semibold text-text">
-                    {transaction.transferAccount?.name}
+                  <Text
+                    className="text-lg font-medium text-text text-center"
+                    numberOfLines={1}
+                  >
+                    {transferAccount.name}
                   </Text>
-                  <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {transaction.transferAccount?.type === "bank"
-                      ? "储蓄卡"
-                      : transaction.transferAccount?.type === "credit_card"
-                        ? "信用卡"
-                        : "其他"}{" "}
-                    {transaction.transferAccount?.accountNumber}
+                  <Text className="text-sm text-textSecondary mt-1">
+                    余额: ¥{transferAccount.balance?.toFixed(2) || "0.00"}
                   </Text>
                 </View>
               </View>
