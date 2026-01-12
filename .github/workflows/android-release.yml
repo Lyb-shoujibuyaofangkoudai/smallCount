@@ -64,6 +64,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           # 上传生成好的 APK
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: android/app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

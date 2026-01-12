@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "small_count",
+    "name": "简记",
     "slug": "small_count",
-    "version": "1.0.0",
+    "description": "一个简单的记账应用",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "smallcount",
@@ -15,7 +16,6 @@
       "permissions": [
         "READ_EXTERNAL_STORAGE"
       ],
-      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -32,6 +32,7 @@
       "bundler": "metro"
     },
     "plugins": [
+      "./plugins/with-custom-apk-name.js",
       "expo-router",
       [
         "expo-splash-screen",

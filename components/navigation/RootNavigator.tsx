@@ -78,10 +78,6 @@ export const RootNavigator = () => {
                 name="modal"
                 options={{ presentation: "modal", title: "Modal", headerShown: false }}
               />
-              {/* <Stack.Screen
-                name="transaction/[...rest]"
-                options={{ presentation: "modal", title: "添加交易", headerShown: false }}
-              /> */}
               <Stack.Screen
                 name="transaction/edit/[id]"
                 options={{ presentation: "modal", title: "编辑交易", headerShown: false }}
@@ -114,6 +110,10 @@ export const RootNavigator = () => {
               <Stack.Screen
                 name="aiSetting"
                 options={{ presentation: "modal", title: "AI 设置", headerShown: false }}
+              />
+              <Stack.Screen
+                name="about"
+                options={{ presentation: "modal", title: "关于我们", headerShown: false }}
               />
             </Stack>
           </DatabaseProvider>

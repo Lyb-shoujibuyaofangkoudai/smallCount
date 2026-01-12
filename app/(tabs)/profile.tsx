@@ -163,6 +163,16 @@ export default function ProfilePage() {
             />
           ),
         },
+        {
+          key: "about",
+          render: () => (
+            <SettingItem
+              label="关于我们"
+              onPress={() => {router.push("/about")}}
+              showArrow={true}
+            />
+          ),
+        },
       ],
     }
   ];
@@ -192,11 +202,11 @@ export default function ProfilePage() {
           <View className="items-center mb-10">
             <View className="w-20 h-20 rounded-full bg-primary items-center justify-center mb-4">
               <Text className="text-white text-2xl font-bold">
-                M
+                简
               </Text>
             </View>
             <Text className="text-xl font-semibold text-neutral-900 dark:text-white mb-1">
-              small记账
+              简记（SmallCount）
             </Text>
             <Text className="text-sm text-gray-500 dark:text-gray-400">
               免费好用的小型记账APP
