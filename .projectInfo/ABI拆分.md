@@ -12,3 +12,33 @@ android {
         }
 }
 ```
+
+使用expo-build-properties插件配置ABI拆分
+```
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "splits": {
+              "abi": {
+                "enable": true,
+                "reset": true,
+                "include": [
+                  "arm64-v8a",
+                  "armeabi-v7a",
+                  "x86",
+                  "x86_64"
+                ],
+                "universalApk": true
+              }
+            }
+          }
+        }
+      ]
+    ]
+  }
+}
+```
