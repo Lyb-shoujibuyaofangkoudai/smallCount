@@ -167,7 +167,7 @@ export default function ProfilePage() {
           key: "about",
           render: () => (
             <SettingItem
-              label="关于我们"
+              label="关于"
               onPress={() => {router.push("/about")}}
               showArrow={true}
             />

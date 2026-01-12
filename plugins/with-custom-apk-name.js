@@ -10,9 +10,9 @@ module.exports = function withCustomApkName(config) {
     const renameScript = `
     // --- Custom APK Name Config Start ---
     android.applicationVariants.all { variant ->
-        variant.outputs.all {
+        variant.outputs.all { output ->
             // 获取 app.json 里的版本号 (通过 BuildConfig 或者 project 属性)
-            def version = defaultConfig.versionName
+            def version = variant.versionName
             def appName = "smallCount" // 你想要的前缀名称
             
             // 最终文件名格式: smallCount-v1.0.0.apk
