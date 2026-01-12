@@ -187,11 +187,30 @@ export default function HomeScreen() {
 
   const [loading, setLoading] = useState(false);
 
+  const [isViewingCurrentMonth, setIsViewingCurrentMonth] = useState(false);
+
+  const handleViewCurrentMonth = () => {
+    const now = new Date();
+    const newDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    setSelectedDate(newDate);
+    setIsViewingCurrentMonth(true);
+    loadTransactions(
+      activeAccountId!,
+      newDate.getFullYear(),
+      newDate.getMonth() + 1
+    );
+  };
+
   // 月份选择器确认回调
   const handleMonthConfirm = (year: number, month: number) => {
     const newDate = new Date(year, month - 1, 1); // 月份从0开始，所以需要减1
     setSelectedDate(newDate);
     setShowMonthSelect(false);
+    const now = new Date();
+    setIsViewingCurrentMonth(
+      newDate.getFullYear() === now.getFullYear() && 
+      newDate.getMonth() === now.getMonth()
+    );
     loadTransactions(
       activeAccountId!,
       newDate.getFullYear(),
@@ -224,6 +243,8 @@ export default function HomeScreen() {
         onDatePress={showMonthSelectModal}
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        onViewCurrentMonth={handleViewCurrentMonth}
+        isViewingCurrentMonth={isViewingCurrentMonth}
       />
 
       {activeTab === "calendar" ? (
@@ -288,7 +309,6 @@ export default function HomeScreen() {
         onConfirm={handleMonthConfirm}
         initialYear={selectedDate.getFullYear()}
         initialMonth={selectedDate.getMonth() + 1}
-        maxDate={new Date().toISOString().split("T")[0]}
       />
     </SafeAreaView>
   );

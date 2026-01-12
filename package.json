@@ -24,6 +24,7 @@
     "drizzle-orm": "^0.44.7",
     "events": "^3.3.0",
     "expo": "~54.0.25",
+    "expo-build-properties": "~1.0.10",
     "expo-constants": "~18.0.10",
     "expo-dev-client": "~6.0.18",
     "expo-document-picker": "~14.0.7",

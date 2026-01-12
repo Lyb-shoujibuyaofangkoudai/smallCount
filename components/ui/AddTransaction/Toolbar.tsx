@@ -139,7 +139,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({ date,onDateChange, onPaymentMe
         onClose={handleDateClose}
         onConfirm={handleDateConfirm}
         currentDate={date}
-        maxDate={new Date().toISOString().split('T')[0]}
       />
 
       {/* 支付方式选择弹窗 */}

@@ -22,7 +22,6 @@ LocaleConfig.locales['zh'] = {
 };
 LocaleConfig.defaultLocale = 'zh';
 
-// --- 2. 颜色定义已移至主题系统 ---
 
 interface DatePickerModalProps {
   visible: boolean;
@@ -65,7 +64,6 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     onClose();
   };
 
-  // --- 修复1: 使用 useMemo 生成 markedDates 并指定类型 ---
   const markedDates: MarkedDates = useMemo(() => {
     return {
       [selectedDay]: {
@@ -77,7 +75,6 @@ const DatePickerModal: React.FC<DatePickerModalProps> = ({
     };
   }, [selectedDay]);
 
-  // --- 修复2: 动态生成 Calendar 主题 ---
   // Calendar 组件不支持 className，必须传 HEX
   const calendarTheme = {
     backgroundColor: theme.colors.card,

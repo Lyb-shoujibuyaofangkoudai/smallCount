@@ -241,6 +241,19 @@ npx expo start
 - **运行到iOS设备/模拟器**：按 `i`（需要macOS）
 - **运行到Web**：按 `w`
 
+6. **android本地打包（使用gradle）**
+```bash
+# 生成release版本apk
+cd android
+./gradlew assembleRelease
+```
+
+```bash
+# 生成 aab格式
+./gradlew bundleRelease
+```
+
+
 ## 📱 运行命令
 
 ```bash
