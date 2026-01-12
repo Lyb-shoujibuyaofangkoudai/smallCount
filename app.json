@@ -3,7 +3,7 @@
     "name": "简记",
     "slug": "small_count",
     "description": "一个简单的记账应用",
-    "version": "1.0.2",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "smallcount",
